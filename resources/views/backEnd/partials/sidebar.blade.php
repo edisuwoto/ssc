@@ -228,7 +228,7 @@ $isSchoolAdmin = Session::get('isSchoolAdmin');
                                 @endif
                                 @if(userPermission(64)  && menuStatus(64))
                                     <li data-position="{{menuPosition(64)}}">
-                                        <a href="{{route('staff_directory')}}"> @lang('lang.master_data')</a>
+                                        <a href="{{route('master_staff')}}"> @lang('lang.master_staff')</a>
                                     </li>
                                 @endif
                                 @if(userPermission(68)  && menuStatus(68))

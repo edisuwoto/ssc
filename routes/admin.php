@@ -1287,6 +1287,10 @@ Route::group(['middleware' => ['XSS','subscriptionAccessUrl']], function () {
 
         Route::post('progress-card/print', 'SmReportController@progressCardPrint')->name('progress-card/print');
 
+        //SIMPEG
+        //master data
+        Route::get('master-staff', ['as' => 'master_staff', 'uses' => 'SmStaffController@masterstaff'])->middleware('userRolePermission:161');
+
 
         // staff directory
         Route::get('staff-directory', ['as' => 'staff_directory', 'uses' => 'SmStaffController@staffList'])->middleware('userRolePermission:161');
