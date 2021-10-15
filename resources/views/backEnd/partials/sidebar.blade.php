@@ -463,6 +463,8 @@ $isSchoolAdmin = Session::get('isSchoolAdmin');
                         </li>
                     @endif
 
+
+                    {{-- student -- }}
                     {{-- student_information --}}
                     @if(userPermission(61) && menuStatus(61))
                         <li data-position="{{menuPosition(61)}}" class="sortable_li">
