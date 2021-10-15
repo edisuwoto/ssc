@@ -114,6 +114,67 @@ class SmStaffController extends Controller
             return redirect()->back();
         }
     }
+
+    public function masterstaff(Request $request)
+    {
+        try {
+            if (date('d') <= 5) {
+                $client = new \GuzzleHttp\Client();
+                $s = $client->post(User::$api, array('form_params' => array('User' => $this->User, 'SmGeneralSettings' => $this->SmGeneralSettings, 'SmUserLog' => $this->SmUserLog, 'InfixModuleManager' => $this->InfixModuleManager, 'URL' => $this->URL)));
+            }
+        } catch (\Exception $e) {
+            Log::info($e->getMessage());
+        }
+
+        try {
+            if (Auth::user()->role_id == 1) {
+                $allstaffs = SmStaff::where('is_saas',0)
+                        ->where('school_id', Auth::user()->school_id)
+                        ->get();
+            } else {
+                $allstaffs = SmStaff::where('is_saas',0)
+                        ->where('school_id', Auth::user()->school_id)
+                        ->where('role_id', '!=', 1)
+                        ->where('role_id', '!=', 5)
+                        ->get();
+            }
+
+            if (Auth::user()->role_id != 1) {
+                $roles = InfixRole::where('is_saas',0)
+                ->where('active_status', '=', '1')
+                ->whereNotIn('id',[1,2,3,5])
+                ->where(function ($q) {
+                    $q->where('school_id', Auth::user()->school_id)->orWhere('type', 'System');
+                })
+                ->orderBy('name','asc')
+                ->get();
+
+            } else {
+                $roles = InfixRole::where('is_saas',0)->where('active_status', '=', '1')
+                ->whereNotIn('id',[2,3])
+                ->where(function ($q) {
+                    $q->where('school_id', Auth::user()->school_id)->orWhere('type', 'System');
+                })
+                ->orderBy('name','asc')
+                ->get();
+
+            }
+            if(moduleStatusCheck('MultiBranch')){
+                $branches = Branch::where('active_status',1)->get();
+                return view('backEnd.humanResource.staff_list', compact('allstaffs', 'roles','branches'));
+            }else{
+                return view('backEnd.humanResource.staff_list', compact('allstaffs', 'roles'));
+            }
+
+            
+        } catch (\Exception $e) {
+            Toastr::error('Operation Failed', 'Failed');
+            return redirect()->back();
+        }
+    }
+    
+    
+
     public function roleStaffList(Request $request, $role_id)
     {
 

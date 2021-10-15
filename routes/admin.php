@@ -1132,6 +1132,11 @@ Route::group(['middleware' => ['XSS','subscriptionAccessUrl']], function () {
 
         Route::get('delete-timeline/{id}', ['as' => 'delete_timeline', 'uses' => 'SmStudentAdmissionController@deleteTimeline']);
 
+        //SPMB
+        //daftar calon mahasiswa
+        Route::get('calon-mahasiswa', ['as' => 'calon_mahasiswa', 'uses' => 'SmStudentAdmissionController@detailCalonMahasiswa'])->middleware('userRolePermission:64');
+
+        //report spmb
 
         //student import
         Route::get('import-student', ['as' => 'import_student', 'uses' => 'SmStudentAdmissionController@importStudent'])->middleware('userRolePermission:63');
@@ -1150,8 +1155,7 @@ Route::group(['middleware' => ['XSS','subscriptionAccessUrl']], function () {
 
         //Datatables
         Route::get('student-list-datatable', ['as' => 'student_list_datatable', 'uses' => 'DatatableQueryController@studentDetailsDatatable'])->middleware('userRolePermission:64');
-       
-        
+
         // student list
         Route::get('student-list', ['as' => 'student_list', 'uses' => 'SmStudentAdmissionController@studentDetails'])->middleware('userRolePermission:64');
         // student search
@@ -1282,6 +1286,10 @@ Route::group(['middleware' => ['XSS','subscriptionAccessUrl']], function () {
 
 
         Route::post('progress-card/print', 'SmReportController@progressCardPrint')->name('progress-card/print');
+
+        //SIMPEG
+        //master data
+        Route::get('master-staff', ['as' => 'master_staff', 'uses' => 'SmStaffController@masterstaff'])->middleware('userRolePermission:161');
 
 
         // staff directory

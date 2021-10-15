@@ -133,13 +133,345 @@ $isSchoolAdmin = Session::get('isSchoolAdmin');
                         </li>
                     @endif
 
+                    {{-- spmb --}}
+                    @if(userPermission(61) && menuStatus(61))
+                        <li data-position="{{menuPosition(61)}}" class="sortable_li">
+                            <a href="#subMenuSPMB" data-toggle="collapse" aria-expanded="false"
+                               class="dropdown-toggle">
+                                <span class="flaticon-reading"></span>
+                                @lang('lang.spmb')
+                            </a>
+                            <ul class="collapse list-unstyled" id="subMenuSPMB">
+                                @if(userPermission(71) && menuStatus(71))
+                                    <li data-position="{{menuPosition(71)}}">
+                                        <a href="{{route('student_category')}}"> @lang('lang.student_category')</a>
+                                    </li>
+                                @endif
+                                @if(userPermission(62)  && menuStatus(62))
+                                    <li data-position="{{menuPosition(62)}}">
+                                        <a href="{{route('student_admission')}}">@lang('lang.add') @lang('lang.student')</a>
+                                    </li>
+                                @endif
+                                @if(userPermission(64)  && menuStatus(64))
+                                    <li data-position="{{menuPosition(64)}}">
+                                        <a href="{{route('calon_mahasiswa')}}"> @lang('lang.data_calon_mahasiswa')</a>
+                                    </li>
+                                @endif
+                                @if(userPermission(68)  && menuStatus(68))
+                                    <li data-position="{{menuPosition(68)}}">
+                                        <a href="{{route('student_attendance')}}"> @lang('lang.student_attendance')</a>
+                                    </li>
+                                @endif
+                                @if(userPermission(70)  && menuStatus(70))
+                                    <li data-position="{{menuPosition(70)}}">
+                                        <a href="{{route('student_attendance_report')}}"> @lang('lang.student_attendance_report')</a>
+                                    </li>
+                                @endif
+                                @if(userPermission(533)  && menuStatus(533))
+                                    <li data-position="{{menuPosition(533)}}">
+                                        <a href="{{route('subject-wise-attendance')}}"> @lang('lang.subject') @lang('lang.wise') @lang('lang.attendance') </a>
+                                    </li>
+                                @endif
+                                @if(userPermission(535)  && menuStatus(535))
+                                  
+                                    <li data-position="{{menuPosition(535)}}">
+                                        <a href="{{url('subject-attendance-average-report')}}"> @lang('lang.subject_attendance_report')</a>
+                                    </li>
+                                @endif
+                                @if(userPermission(76)  && menuStatus(76))
+                                    <li data-position="{{menuPosition(76)}}">
+                                        <a href="{{route('student_group')}}">@lang('lang.student_group')</a>
+                                    </li>
+                                @endif
+                                @if(userPermission(81)  && menuStatus(81))
+                                    <li data-position="{{menuPosition(81)}}">
+                                        <a href="{{route('student_promote')}}">@lang('lang.student_promote')</a>
+                                    </li>
+                                @endif
+                                @if(userPermission(83)  && menuStatus(83))
+                                    <li data-position="{{menuPosition(83)}}">
+                                        <a href="{{route('disabled_student')}}">@lang('lang.disabled_student')</a>
+                                    </li>
+                                @endif
+                                @if(userPermission(663)  && menuStatus(663))
+                                    <li data-position="{{menuPosition(663)}}">
+                                        <a href="{{route('all-student-export')}}">@lang('lang.student') @lang('lang.export')</a>
+                                    </li>
+                                @endif
+                                @if (moduleStatusCheck('StudentAbsentNotification')== TRUE)
+                                    <li>
+                                        <a href="{{route('notification_time_setup')}}">@lang('lang.time_setup')</a>
+                                    </li>
+                                @endif
+                            </ul>
+                        </li>
+                    @endif
+
+                    {{-- SIMPEG --}}
+                    @if(userPermission(61) && menuStatus(61))
+                        <li data-position="{{menuPosition(61)}}" class="sortable_li">
+                            <a href="#subMenuSIMPEG" data-toggle="collapse" aria-expanded="false"
+                               class="dropdown-toggle">
+                                <span class="flaticon-reading"></span>
+                                @lang('lang.simpeg')
+                            </a>
+                            <ul class="collapse list-unstyled" id="subMenuSIMPEG">
+                                @if(userPermission(71) && menuStatus(71))
+                                    <li data-position="{{menuPosition(71)}}">
+                                        <a href="{{route('student_category')}}"> @lang('lang.dashboard')</a>
+                                    </li>
+                                @endif
+                                @if(userPermission(62)  && menuStatus(62))
+                                    <li data-position="{{menuPosition(62)}}">
+                                        <a href="{{route('student_admission')}}">@lang('lang.group_privilege')</a>
+                                    </li>
+                                @endif
+                                @if(userPermission(64)  && menuStatus(64))
+                                    <li data-position="{{menuPosition(64)}}">
+                                        <a href="{{route('master_staff')}}"> @lang('lang.master_staff')</a>
+                                    </li>
+                                @endif
+                                @if(userPermission(68)  && menuStatus(68))
+                                    <li data-position="{{menuPosition(68)}}">
+                                        <a href="{{route('student_attendance')}}"> @lang('lang.absensi')</a>
+                                    </li>
+                                @endif
+                                @if(userPermission(70)  && menuStatus(70))
+                                    <li data-position="{{menuPosition(70)}}">
+                                        <a href="{{route('student_attendance_report')}}"> @lang('lang.list_data')</a>
+                                    </li>
+                                @endif
+                                @if(userPermission(533)  && menuStatus(533))
+                                    <li data-position="{{menuPosition(533)}}">
+                                        <a href="{{route('subject-wise-attendance')}}"> @lang('lang.profile') @lang('lang.staff') @lang('lang.attendance') </a>
+                                    </li>
+                                @endif
+                                @if(userPermission(535)  && menuStatus(535))
+                                  
+                                    <li data-position="{{menuPosition(535)}}">
+                                        <a href="{{url('subject-attendance-average-report')}}"> @lang('lang.cuti')</a>
+                                    </li>
+                                @endif
+                                @if(userPermission(76)  && menuStatus(76))
+                                    <li data-position="{{menuPosition(76)}}">
+                                        <a href="{{route('student_group')}}">@lang('lang.pembimbing_akademik')</a>
+                                    </li>
+                                @endif
+                                @if(userPermission(663)  && menuStatus(663))
+                                    <li data-position="{{menuPosition(663)}}">
+                                        <a href="{{route('all-student-export')}}">@lang('lang.reports') @lang('lang.staffs')</a>
+                                    </li>
+                                @endif
+                                @if (moduleStatusCheck('StudentAbsentNotification')== TRUE)
+                                    <li>
+                                        <a href="{{route('notification_time_setup')}}">@lang('lang.time_setup')</a>
+                                    </li>
+                                @endif
+                            </ul>
+                        </li>
+                    @endif
+
+                    {{-- BKD --}}
+                    @if(userPermission(61) && menuStatus(61))
+                        <li data-position="{{menuPosition(61)}}" class="sortable_li">
+                            <a href="#subMenuBKD" data-toggle="collapse" aria-expanded="false"
+                               class="dropdown-toggle">
+                                <span class="flaticon-reading"></span>
+                                @lang('lang.bkd')
+                            </a>
+                            <ul class="collapse list-unstyled" id="subMenuBKD">
+                                @if(userPermission(71) && menuStatus(71))
+                                    <li data-position="{{menuPosition(71)}}">
+                                        <a href="{{route('student_category')}}"> @lang('lang.dashboard')</a>
+                                    </li>
+                                @endif
+                                @if(userPermission(62)  && menuStatus(62))
+                                    <li data-position="{{menuPosition(62)}}">
+                                        <a href="{{route('student_admission')}}">@lang('lang.group_privilege')</a>
+                                    </li>
+                                @endif
+                                @if(userPermission(64)  && menuStatus(64))
+                                    <li data-position="{{menuPosition(64)}}">
+                                        <a href="{{route('student_list')}}"> @lang('lang.master_data')</a>
+                                    </li>
+                                @endif
+                                @if(userPermission(68)  && menuStatus(68))
+                                    <li data-position="{{menuPosition(68)}}">
+                                        <a href="{{route('student_attendance')}}"> @lang('lang.absensi')</a>
+                                    </li>
+                                @endif
+                                @if(userPermission(70)  && menuStatus(70))
+                                    <li data-position="{{menuPosition(70)}}">
+                                        <a href="{{route('student_attendance_report')}}"> @lang('lang.list_data')</a>
+                                    </li>
+                                @endif
+                                @if(userPermission(533)  && menuStatus(533))
+                                    <li data-position="{{menuPosition(533)}}">
+                                        <a href="{{route('subject-wise-attendance')}}"> @lang('lang.profile') @lang('lang.staff') @lang('lang.attendance') </a>
+                                    </li>
+                                @endif
+                                @if(userPermission(535)  && menuStatus(535))
+                                  
+                                    <li data-position="{{menuPosition(535)}}">
+                                        <a href="{{url('subject-attendance-average-report')}}"> @lang('lang.cuti')</a>
+                                    </li>
+                                @endif
+                                @if(userPermission(76)  && menuStatus(76))
+                                    <li data-position="{{menuPosition(76)}}">
+                                        <a href="{{route('student_group')}}">@lang('lang.pembimbing_akademik')</a>
+                                    </li>
+                                @endif
+                                @if(userPermission(663)  && menuStatus(663))
+                                    <li data-position="{{menuPosition(663)}}">
+                                        <a href="{{route('all-student-export')}}">@lang('lang.reports') @lang('lang.staffs')</a>
+                                    </li>
+                                @endif
+                                @if (moduleStatusCheck('StudentAbsentNotification')== TRUE)
+                                    <li>
+                                        <a href="{{route('notification_time_setup')}}">@lang('lang.time_setup')</a>
+                                    </li>
+                                @endif
+                            </ul>
+                        </li>
+                    @endif
+
+                    {{-- Akademik --}}
+                    @if(userPermission(61) && menuStatus(61))
+                        <li data-position="{{menuPosition(61)}}" class="sortable_li">
+                            <a href="#subMenuAkademik" data-toggle="collapse" aria-expanded="false"
+                               class="dropdown-toggle">
+                                <span class="flaticon-reading"></span>
+                                @lang('lang.akademik')
+                            </a>
+                            <ul class="collapse list-unstyled" id="subMenuAkademik">
+                                @if(userPermission(71) && menuStatus(71))
+                                    <li data-position="{{menuPosition(71)}}">
+                                        <a href="{{route('student_category')}}"> @lang('lang.dashboard')</a>
+                                    </li>
+                                @endif
+                                @if(userPermission(62)  && menuStatus(62))
+                                    <li data-position="{{menuPosition(62)}}">
+                                        <a href="{{route('student_admission')}}">@lang('lang.group_privilege')</a>
+                                    </li>
+                                @endif
+                                @if(userPermission(64)  && menuStatus(64))
+                                    <li data-position="{{menuPosition(64)}}">
+                                        <a href="{{route('student_list')}}"> @lang('lang.master_data')</a>
+                                    </li>
+                                @endif
+                                @if(userPermission(68)  && menuStatus(68))
+                                    <li data-position="{{menuPosition(68)}}">
+                                        <a href="{{route('student_attendance')}}"> @lang('lang.absensi')</a>
+                                    </li>
+                                @endif
+                                @if(userPermission(70)  && menuStatus(70))
+                                    <li data-position="{{menuPosition(70)}}">
+                                        <a href="{{route('student_attendance_report')}}"> @lang('lang.list_data')</a>
+                                    </li>
+                                @endif
+                                @if(userPermission(533)  && menuStatus(533))
+                                    <li data-position="{{menuPosition(533)}}">
+                                        <a href="{{route('subject-wise-attendance')}}"> @lang('lang.profile') @lang('lang.staff') @lang('lang.attendance') </a>
+                                    </li>
+                                @endif
+                                @if(userPermission(535)  && menuStatus(535))
+                                  
+                                    <li data-position="{{menuPosition(535)}}">
+                                        <a href="{{url('subject-attendance-average-report')}}"> @lang('lang.cuti')</a>
+                                    </li>
+                                @endif
+                                @if(userPermission(76)  && menuStatus(76))
+                                    <li data-position="{{menuPosition(76)}}">
+                                        <a href="{{route('student_group')}}">@lang('lang.pembimbing_akademik')</a>
+                                    </li>
+                                @endif
+                                @if(userPermission(663)  && menuStatus(663))
+                                    <li data-position="{{menuPosition(663)}}">
+                                        <a href="{{route('all-student-export')}}">@lang('lang.reports') @lang('lang.staffs')</a>
+                                    </li>
+                                @endif
+                                @if (moduleStatusCheck('StudentAbsentNotification')== TRUE)
+                                    <li>
+                                        <a href="{{route('notification_time_setup')}}">@lang('lang.time_setup')</a>
+                                    </li>
+                                @endif
+                            </ul>
+                        </li>
+                    @endif
+
+                    {{-- keuangan --}}
+                    @if(userPermission(61) && menuStatus(61))
+                        <li data-position="{{menuPosition(61)}}" class="sortable_li">
+                            <a href="#subMenuKeuangan" data-toggle="collapse" aria-expanded="false"
+                               class="dropdown-toggle">
+                                <span class="flaticon-reading"></span>
+                                @lang('lang.keuangan')
+                            </a>
+                            <ul class="collapse list-unstyled" id="subMenuKeuangan">
+                                @if(userPermission(71) && menuStatus(71))
+                                    <li data-position="{{menuPosition(71)}}">
+                                        <a href="{{route('student_category')}}"> @lang('lang.dashboard')</a>
+                                    </li>
+                                @endif
+                                @if(userPermission(62)  && menuStatus(62))
+                                    <li data-position="{{menuPosition(62)}}">
+                                        <a href="{{route('student_admission')}}">@lang('lang.group_privilege')</a>
+                                    </li>
+                                @endif
+                                @if(userPermission(64)  && menuStatus(64))
+                                    <li data-position="{{menuPosition(64)}}">
+                                        <a href="{{route('student_list')}}"> @lang('lang.master_data')</a>
+                                    </li>
+                                @endif
+                                @if(userPermission(68)  && menuStatus(68))
+                                    <li data-position="{{menuPosition(68)}}">
+                                        <a href="{{route('student_attendance')}}"> @lang('lang.absensi')</a>
+                                    </li>
+                                @endif
+                                @if(userPermission(70)  && menuStatus(70))
+                                    <li data-position="{{menuPosition(70)}}">
+                                        <a href="{{route('student_attendance_report')}}"> @lang('lang.list_data')</a>
+                                    </li>
+                                @endif
+                                @if(userPermission(533)  && menuStatus(533))
+                                    <li data-position="{{menuPosition(533)}}">
+                                        <a href="{{route('subject-wise-attendance')}}"> @lang('lang.profile') @lang('lang.staff') @lang('lang.attendance') </a>
+                                    </li>
+                                @endif
+                                @if(userPermission(535)  && menuStatus(535))
+                                  
+                                    <li data-position="{{menuPosition(535)}}">
+                                        <a href="{{url('subject-attendance-average-report')}}"> @lang('lang.cuti')</a>
+                                    </li>
+                                @endif
+                                @if(userPermission(76)  && menuStatus(76))
+                                    <li data-position="{{menuPosition(76)}}">
+                                        <a href="{{route('student_group')}}">@lang('lang.pembimbing_akademik')</a>
+                                    </li>
+                                @endif
+                                @if(userPermission(663)  && menuStatus(663))
+                                    <li data-position="{{menuPosition(663)}}">
+                                        <a href="{{route('all-student-export')}}">@lang('lang.reports') @lang('lang.staffs')</a>
+                                    </li>
+                                @endif
+                                @if (moduleStatusCheck('StudentAbsentNotification')== TRUE)
+                                    <li>
+                                        <a href="{{route('notification_time_setup')}}">@lang('lang.time_setup')</a>
+                                    </li>
+                                @endif
+                            </ul>
+                        </li>
+                    @endif
+
+
+                    {{-- student -- }}
                     {{-- student_information --}}
                     @if(userPermission(61) && menuStatus(61))
                         <li data-position="{{menuPosition(61)}}" class="sortable_li">
                             <a href="#subMenuStudent" data-toggle="collapse" aria-expanded="false"
                                class="dropdown-toggle">
                                 <span class="flaticon-reading"></span>
-                                @lang('lang.student_information')
+                                @lang('lang.student')
                             </a>
                             <ul class="collapse list-unstyled" id="subMenuStudent">
                                 @if(userPermission(71) && menuStatus(71))
