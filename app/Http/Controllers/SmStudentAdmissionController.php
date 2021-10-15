@@ -955,6 +955,36 @@ class SmStudentAdmissionController extends Controller
         }
     }
 
+    public function detailCalonMahasiswa(Request $request)
+    {
+        try {
+            $classes = SmClass::where('active_status', 1)
+                    ->where('academic_id', getAcademicId())
+                    ->where('school_id', Auth::user()->school_id)
+                    ->get();
+
+            $student_list = DB::table('sm_students')
+                            ->join('sm_classes', 'sm_students.class_id', '=', 'sm_classes.id')
+                            ->join('sm_sections', 'sm_students.section_id', '=', 'sm_sections.id')
+                            ->where('sm_students.academic_id', getAcademicId())
+                            ->where('sm_students.school_id', Auth::user()->school_id)
+                            ->get();
+
+            $students = SmStudent::where('academic_id', getAcademicId())
+                        ->where('school_id', Auth::user()->school_id)
+                        ->get();
+
+            $sessions = SmAcademicYear::where('active_status',1)
+                        ->where('school_id', Auth::user()->school_id)
+                        ->get();
+
+            return view('backEnd.studentInformation.student_details', compact('classes', 'sessions','students'));
+        } catch (\Exception $e) {
+            Toastr::error('Operation Failed', 'Failed');
+            return redirect()->back();
+        }
+    }
+
 
     public function getClassBySchool($schoolId){
       return  $classes = SmClass::where('active_status', 1)
