@@ -9,7 +9,7 @@ $copyright_text = 'Copyright 2019 All rights reserved by Codethemes';
 </div>
 </div>
 
-<?php if(env('APP_SYNC') == True): ?>
+<?php if(config('app.app_sync')): ?>
     <a target="_blank" href="https://1.envato.market/9WVoZ3" class="float_button"> <i class="ti-shopping-cart-full"></i>
         <h3>Purchase InfixEdu</h3>
     </a>

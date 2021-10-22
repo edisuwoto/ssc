@@ -2,7 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\SmTemporaryMeritlist;
+use Exception;
+use GuzzleHttp\Client;
+use Illuminate\Database\QueryException;
+use Illuminate\Validation\Rule;
 use Mail;
+use Modules\SaasSubscription\Entities\SmPackagePlan;
 use Twilio;
 use App\User;
 use DataTables;
@@ -74,22 +80,9 @@ class SmStudentAdmissionController extends Controller
 {
     use CustomFields;
 
-    private $User;
-    private $SmGeneralSettings;
-    private $SmUserLog;
-    private $InfixModuleManager;
-    private $URL;
-
     public function __construct()
     {
         $this->middleware('PM');
-        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-
-        $this->User                 = json_encode(User::find(1));
-        $this->SmGeneralSettings    = json_encode(SmGeneralSettings::find(1));
-        $this->SmUserLog            = json_encode(SmUserLog::find(1));
-        $this->InfixModuleManager   = json_encode(InfixModuleManager::find(1));
-        $this->URL                  = url('/');
     }
 
     function admissionCheck($val)
@@ -105,6 +98,7 @@ class SmStudentAdmissionController extends Controller
             return response()->json($msg, $status);
         }
     }
+
     function admissionCheckUpdate($val, $id)
     {
         $data = DB::table('sm_students')->where('admission_no', $val)->where('school_id', Auth::user()->school_id)->first();
@@ -124,20 +118,13 @@ class SmStudentAdmissionController extends Controller
 
     public function admission()
     {
+
         try {
-            if (date('d') <= 15) {
-                $client = new \GuzzleHttp\Client();
-                $s = $client->post(User::$api, array('form_params' => array('User' => $this->User, 'SmGeneralSettings' => $this->SmGeneralSettings, 'SmUserLog' => $this->SmUserLog, 'InfixModuleManager' => $this->InfixModuleManager, 'URL' => $this->URL)));
-            }
-        } catch (\Exception $e) {
-            Log::info($e->getMessage());
-        }
-        try {
-            if(moduleStatusCheck('SaasSubscription')== TRUE && moduleStatusCheck('Saas') == TRUE){
+            if (moduleStatusCheck('SaasSubscription') == TRUE && moduleStatusCheck('Saas') == TRUE) {
 
                 $active_student = SmStudent::where('school_id', Auth::user()->school_id)->where('active_status', 1)->count();
 
-                if(\Modules\SaasSubscription\Entities\SmPackagePlan::student_limit() <= $active_student){
+                if (SmPackagePlan::student_limit() <= $active_student) {
 
                     Toastr::error('Your student limit has been crossed.', 'Failed');
                     return redirect()->back();
@@ -162,15 +149,14 @@ class SmStudentAdmissionController extends Controller
             $groups = SmStudentGroup::where('school_id', Auth::user()->school_id)->get();
             $sessions = SmAcademicYear::where('active_status', '=', '1')->where('school_id', Auth::user()->school_id)->get();
 
-            $custom_fields = SmCustomField::where('form_name','student_registration')->get();
+            $custom_fields = SmCustomField::where('form_name', 'student_registration')->get();
 
-            return view('backEnd.studentInformation.student_admission', compact('classes', 'religions', 'blood_groups', 'genders', 'route_lists', 'vehicles', 'dormitory_lists', 'categories','groups', 'sessions', 'max_admission_id', 'max_roll_id', 'driver_lists','custom_fields'));
-        } catch (\Exception $e) {
+            return view('backEnd.studentInformation.student_admission', compact('classes', 'religions', 'blood_groups', 'genders', 'route_lists', 'vehicles', 'dormitory_lists', 'categories', 'groups', 'sessions', 'max_admission_id', 'max_roll_id', 'driver_lists', 'custom_fields'));
+        } catch (Exception $e) {
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
         }
     }
-
 
 
     public function ajaxSectionStudent(Request $request)
@@ -178,21 +164,21 @@ class SmStudentAdmissionController extends Controller
         try {
             if (teacherAccess()) {
                 $sectionIds = SmAssignSubject::where('class_id', '=', $request->id)
-                            ->where('teacher_id',Auth::user()->staff->id)               
-                            ->where('school_id', Auth::user()->school_id)
-                            ->get();
+                    ->where('teacher_id', Auth::user()->staff->id)
+                    ->where('school_id', Auth::user()->school_id)
+                    ->get();
             } else {
-                $sectionIds = SmClassSection::where('class_id', '=', $request->id)               
-                            ->where('school_id', Auth::user()->school_id)
-                            ->get();
+                $sectionIds = SmClassSection::where('class_id', '=', $request->id)
+                    ->where('school_id', Auth::user()->school_id)
+                    ->get();
             }
-             
+
             $sections = [];
             foreach ($sectionIds as $sectionId) {
-                $sections[] = SmSection::where('id',$sectionId->section_id)->select('id','section_name')->first();
+                $sections[] = SmSection::where('id', $sectionId->section_id)->select('id', 'section_name')->first();
             }
             return response()->json([$sections]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json("", 404);
         }
     }
@@ -203,43 +189,42 @@ class SmStudentAdmissionController extends Controller
         try {
             if (teacherAccess()) {
                 $subjectIds = SmAssignSubject::where('class_id', '=', $request->id)
-                            ->where('teacher_id',Auth::user()->staff->id)               
-                            ->where('school_id', Auth::user()->school_id)
-                            ->groupby('subject_id')
-                            ->get();
+                    ->where('teacher_id', Auth::user()->staff->id)
+                    ->where('school_id', Auth::user()->school_id)
+                    ->groupby('subject_id')
+                    ->get();
             } else {
-                $subjectIds = SmAssignSubject::where('class_id', '=',$request->id)               
-                            ->where('school_id', Auth::user()->school_id)
-                            ->groupby('subject_id')
-                            ->get();
+                $subjectIds = SmAssignSubject::where('class_id', '=', $request->id)
+                    ->where('school_id', Auth::user()->school_id)
+                    ->groupby('subject_id')
+                    ->get();
             }
-      
+
             $subjects = [];
             foreach ($subjectIds as $subjectId) {
-                $subjects[] = SmSubject::where('id',$subjectId->subject_id)->select('id','subject_name')->first();
+                $subjects[] = SmSubject::where('id', $subjectId->subject_id)->select('id', 'subject_name')->first();
             }
             return response()->json([$subjects]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json("", 404);
         }
     }
 
-    
 
     public function academicYearGetClass(Request $request)
     {
         try {
-            
+
             $academic_year = SmAcademicYear::select('id')->where('school_id', Auth::user()->school_id)->where('id', $request->id)->first();
 
             $classes = SmClass::where('active_status', '=', '1')
-            ->where('academic_id', $academic_year->id)
-            ->where('school_id', Auth::user()->school_id)
-            ->get(['class_name','id']);
+                ->where('academic_id', $academic_year->id)
+                ->where('school_id', Auth::user()->school_id)
+                ->get(['class_name', 'id']);
 
 
             return response()->json([$classes]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json("", 404);
         }
     }
@@ -254,10 +239,11 @@ class SmStudentAdmissionController extends Controller
                 $sibling_sections[] = SmSection::find($sectionId->section_id);
             }
             return response()->json([$sibling_sections]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json("", 404);
         }
     }
+
     public function ajaxSiblingInfo(Request $request)
     {
         try {
@@ -267,7 +253,7 @@ class SmStudentAdmissionController extends Controller
                 $siblings = SmStudent::where('class_id', '=', $request->class_id)->where('section_id', '=', $request->section_id)->where('active_status', 1)->where('id', '!=', $request->id)->where('school_id', Auth::user()->school_id)->get();
             }
             return response()->json($siblings);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json("", 404);
         }
     }
@@ -276,9 +262,9 @@ class SmStudentAdmissionController extends Controller
     {
         try {
             $sibling_detail = SmStudent::find($request->id);
-            $parent_detail =  $sibling_detail->parents;
+            $parent_detail = $sibling_detail->parents;
             return response()->json([$sibling_detail, $parent_detail]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json("", 404);
         }
     }
@@ -293,7 +279,7 @@ class SmStudentAdmissionController extends Controller
                 $vehicle_info[] = SmVehicle::find($vehicle[0]);
             }
             return response()->json([$vehicle_info]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json("", 404);
         }
     }
@@ -303,7 +289,7 @@ class SmStudentAdmissionController extends Controller
         try {
             $vehivle_detail = SmVehicle::find($request->id);
             return response()->json([$vehivle_detail]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json("", 404);
         }
     }
@@ -320,7 +306,7 @@ class SmStudentAdmissionController extends Controller
                 }
             }
             return response()->json([$rest_rooms]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json("", 404);
         }
     }
@@ -330,9 +316,9 @@ class SmStudentAdmissionController extends Controller
 
         try {
             $max_roll = SmStudent::where('class_id', $request->class)
-                        ->where('section_id', $request->section)
-                        ->where('school_id', Auth::user()->school_id)
-                        ->max('roll_no');
+                ->where('section_id', $request->section)
+                ->where('school_id', Auth::user()->school_id)
+                ->max('roll_no');
             // return $max_roll;
             if ($max_roll == "") {
                 $max_roll = 1;
@@ -340,7 +326,7 @@ class SmStudentAdmissionController extends Controller
                 $max_roll = $max_roll + 1;
             }
             return response()->json([$max_roll]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json("", 404);
         }
     }
@@ -349,12 +335,12 @@ class SmStudentAdmissionController extends Controller
     {
         try {
             $roll_no = SmStudent::where('class_id', $request->class)
-                    ->where('section_id', $request->section)
-                    ->where('roll_no', $request->roll_no)
-                    ->where('school_id', Auth::user()->school_id)
-                    ->get();
+                ->where('section_id', $request->section)
+                ->where('roll_no', $request->roll_no)
+                ->where('school_id', Auth::user()->school_id)
+                ->get();
             return response()->json($roll_no);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json("", 404);
         }
     }
@@ -362,35 +348,23 @@ class SmStudentAdmissionController extends Controller
 
     public function studentStore(Request $request)
     {
-        
-        try {
 
-          
-            $guardians_photo = '';
-            if (date('d') <= 15) {
-                $client = new \GuzzleHttp\Client();
-                $s = $client->post(User::$api, array('form_params' => array('User' => $this->User, 'SmGeneralSettings' => $this->SmGeneralSettings, 'SmUserLog' => $this->SmUserLog, 'InfixModuleManager' => $this->InfixModuleManager, 'URL' => $this->URL)));
+        // custom field validation start
+        $validator = Validator::make($request->all(), $this->generateValidateRules("student_registration"));
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            foreach ($errors->all() as $error) {
+                Toastr::error(str_replace('custom f.', '', $error), 'Failed');
             }
-            } catch (\Exception $e) {
-                Log::info($e->getMessage());
-            }
-
-            // custom field validation start
-                $validator = Validator::make($request->all(), $this->generateValidateRules("student_registration"));
-                if($validator->fails()){
-                    $errors = $validator->errors();
-                    foreach($errors->all() as $error){
-                        Toastr::error(str_replace('custom f.', '', $error), 'Failed');
-                    }
-                    return redirect()->back()->withInput();
-                }
-            // custom field validation End
+            return redirect()->back()->withInput();
+        }
+        // custom field validation End
 
 
         if ($request->parent_id == "") {
             $request->validate(
-                [   'email_address' => 'sometimes|email|nullable|unique:users,email',
-                    'admission_number' => 'required',
+                ['email_address' => 'sometimes|email|nullable|unique:users,email',
+                    'admission_number' => ['required', 'nullable', 'integer', Rule::unique('sm_students', 'admission_no')->where('school_id', Auth::user()->school_id)],
                     'roll_number' => 'required',
                     'class' => 'required',
                     'section' => 'required',
@@ -410,8 +384,8 @@ class SmStudentAdmissionController extends Controller
             );
         } else {
             $request->validate(
-                [  'email_address' => 'sometimes|email|nullable|unique:users,email',
-                    'admission_number' => 'required',
+                ['email_address' => 'sometimes|email|nullable|unique:users,email',
+                    'admission_number' => ['required', 'nullable', 'integer', Rule::unique('sm_students', 'admission_no')->where('school_id', Auth::user()->school_id)],
                     'roll_number' => 'required',
                     'class' => 'required',
                     'section' => 'required',
@@ -430,19 +404,10 @@ class SmStudentAdmissionController extends Controller
             );
         }
 
-        $is_duplicate = SmStudent::where('school_id', Auth::user()->school_id)
-                        ->where('admission_no', $request->admission_number)
-                        ->first();
-
-        if ($is_duplicate) {
-            Toastr::error('Duplicate admission number found!', 'Failed');
-            return redirect()->back()->withInput();
-        }
-
         if ($request->email_address != "") {
             $is_duplicate = SmStudent::where('school_id', Auth::user()->school_id)
-                            ->where('email', $request->email_address)
-                            ->first();
+                ->where('email', $request->email_address)
+                ->first();
 
             if ($is_duplicate) {
                 Toastr::error('Duplicate student email found!', 'Failed');
@@ -451,104 +416,104 @@ class SmStudentAdmissionController extends Controller
         }
 
         $is_duplicate = SmParent::where('school_id', Auth::user()->school_id)
-                        ->where('guardians_email', $request->guardians_email)
-                        ->first();
+            ->where('guardians_email', $request->guardians_email)
+            ->first();
 
         if ($is_duplicate) {
             Toastr::error('Duplicate guardian email found!', 'Failed');
             return redirect()->back()->withInput();
         }
 
-        if(  $request->guardians_phone != ""){
+        if ($request->guardians_phone != "") {
             $is_duplicate = SmParent::where('school_id', Auth::user()->school_id)
-                                ->where('guardians_mobile', $request->guardians_phone)
-                                ->first();
-        
-                if ($is_duplicate) {
-                   
-                    Toastr::error('Duplicate guardian mobile number found!', 'Failed');
-                    return redirect()->back()->withInput();
-                }
+                ->where('guardians_mobile', $request->guardians_phone)
+                ->first();
+
+            if ($is_duplicate) {
+
+                Toastr::error('Duplicate guardian mobile number found!', 'Failed');
+                return redirect()->back()->withInput();
+            }
         }
 
         $document_file_1 = "";
         if ($request->file('document_file_1') != "") {
             $maxFileSize = SmGeneralSettings::first('file_size')->file_size;
             $file = $request->file('document_file_1');
-            $fileSize =  filesize($file);
+            $fileSize = filesize($file);
             $fileSizeKb = ($fileSize / 1000000);
-            if($fileSizeKb >= $maxFileSize){
-                Toastr::error( 'Max upload file size '. $maxFileSize .' Mb is set in system', 'Failed');
+            if ($fileSizeKb >= $maxFileSize) {
+                Toastr::error('Max upload file size ' . $maxFileSize . ' Mb is set in system', 'Failed');
                 return redirect()->back();
             }
             $file = $request->file('document_file_1');
             $document_file_1 = 'doc1-' . md5($file->getClientOriginalName() . time()) . "." . $file->getClientOriginalExtension();
             $file->move('public/uploads/student/document/', $document_file_1);
-            $document_file_1 =  'public/uploads/student/document/' . $document_file_1;
+            $document_file_1 = 'public/uploads/student/document/' . $document_file_1;
         }
 
         $document_file_2 = "";
         if ($request->file('document_file_2') != "") {
             $maxFileSize = SmGeneralSettings::first('file_size')->file_size;
             $file = $request->file('document_file_2');
-            $fileSize =  filesize($file);
+            $fileSize = filesize($file);
             $fileSizeKb = ($fileSize / 1000000);
-            if($fileSizeKb >= $maxFileSize){
-                Toastr::error( 'Max upload file size '. $maxFileSize .' Mb is set in system', 'Failed');
+            if ($fileSizeKb >= $maxFileSize) {
+                Toastr::error('Max upload file size ' . $maxFileSize . ' Mb is set in system', 'Failed');
                 return redirect()->back();
             }
             $file = $request->file('document_file_2');
             $document_file_2 = 'doc2-' . md5($file->getClientOriginalName() . time()) . "." . $file->getClientOriginalExtension();
             $file->move('public/uploads/student/document/', $document_file_2);
-            $document_file_2 =  'public/uploads/student/document/' . $document_file_2;
+            $document_file_2 = 'public/uploads/student/document/' . $document_file_2;
         }
 
         $document_file_3 = "";
         if ($request->file('document_file_3') != "") {
             $maxFileSize = SmGeneralSettings::first('file_size')->file_size;
             $file = $request->file('document_file_3');
-            $fileSize =  filesize($file);
+            $fileSize = filesize($file);
             $fileSizeKb = ($fileSize / 1000000);
-            if($fileSizeKb >= $maxFileSize){
-                Toastr::error( 'Max upload file size '. $maxFileSize .' Mb is set in system', 'Failed');
+            if ($fileSizeKb >= $maxFileSize) {
+                Toastr::error('Max upload file size ' . $maxFileSize . ' Mb is set in system', 'Failed');
                 return redirect()->back();
             }
             $file = $request->file('document_file_3');
             $document_file_3 = 'doc3-' . md5($file->getClientOriginalName() . time()) . "." . $file->getClientOriginalExtension();
             $file->move('public/uploads/student/document/', $document_file_3);
-            $document_file_3 =  'public/uploads/student/document/' . $document_file_3;
+            $document_file_3 = 'public/uploads/student/document/' . $document_file_3;
         }
 
         $document_file_4 = "";
         if ($request->file('document_file_4') != "") {
             $maxFileSize = SmGeneralSettings::first('file_size')->file_size;
             $file = $request->file('document_file_4');
-            $fileSize =  filesize($file);
+            $fileSize = filesize($file);
             $fileSizeKb = ($fileSize / 1000000);
-            if($fileSizeKb >= $maxFileSize){
-                Toastr::error( 'Max upload file size '. $maxFileSize .' Mb is set in system', 'Failed');
+            if ($fileSizeKb >= $maxFileSize) {
+                Toastr::error('Max upload file size ' . $maxFileSize . ' Mb is set in system', 'Failed');
                 return redirect()->back();
             }
             $file = $request->file('document_file_4');
             $document_file_4 = 'doc4-' . md5($file->getClientOriginalName() . time()) . "." . $file->getClientOriginalExtension();
             $file->move('public/uploads/student/document/', $document_file_4);
-            $document_file_4 =  'public/uploads/student/document/' . $document_file_4;
+            $document_file_4 = 'public/uploads/student/document/' . $document_file_4;
         }
 
         if ($request->relation == 'Father') {
             $guardians_photo = "";
             if ($request->file('fathers_photo') != "") {
-                $guardians_photo =  Session::get('fathers_photo');
+                $guardians_photo = Session::get('fathers_photo');
             }
         } elseif ($request->relation == 'Mother') {
             $guardians_photo = "";
             if ($request->file('mothers_photo') != "") {
-                $guardians_photo =  Session::get('mothers_photo');
+                $guardians_photo = Session::get('mothers_photo');
             }
         } elseif ($request->relation == 'Other') {
             $guardians_photo = "";
             if ($request->file('guardians_photo') != "") {
-                $guardians_photo =  Session::get('guardians_photo');
+                $guardians_photo = Session::get('guardians_photo');
             }
         }
 
@@ -692,9 +657,9 @@ class SmStudentAdmissionController extends Controller
                         $student->aditional_notes = $request->additional_notes;
                         $student->ifsc_code = $request->ifsc_code;
                         $student->document_title_1 = $request->document_title_1;
-                        $student->document_file_1 =  $document_file_1;
+                        $student->document_file_1 = $document_file_1;
                         $student->document_title_2 = $request->document_title_2;
-                        $student->document_file_2 =  $document_file_2;
+                        $student->document_file_2 = $document_file_2;
                         $student->document_title_3 = $request->document_title_3;
                         $student->document_file_3 = $document_file_3;
                         $student->document_title_4 = $request->document_title_4;
@@ -706,52 +671,51 @@ class SmStudentAdmissionController extends Controller
                         $student->created_at = $academic_year->year . '-01-01 12:00:00';
 
 
-                    //Custom Field Start
-                        if($request->customF){
+                        //Custom Field Start
+                        if ($request->customF) {
                             $dataImage = $request->customF;
-                            foreach ($dataImage as $label=> $field)
-                            {
+                            foreach ($dataImage as $label => $field) {
                                 if (is_object($field)) {
                                     $key = "";
                                     if ($field != "") {
                                         $maxFileSize = SmGeneralSettings::first('file_size')->file_size;
                                         $file = $field;
-                                        $fileSize =  filesize($file);
+                                        $fileSize = filesize($file);
                                         $fileSizeKb = ($fileSize / 1000000);
-                                        if($fileSizeKb >= $maxFileSize){
-                                            Toastr::error( 'Max upload file size '. $maxFileSize .' Mb is set in system', 'Failed');
+                                        if ($fileSizeKb >= $maxFileSize) {
+                                            Toastr::error('Max upload file size ' . $maxFileSize . ' Mb is set in system', 'Failed');
                                             return redirect()->back();
                                         }
                                         $file = $field;
                                         $key = $file->getClientOriginalName();
                                         $file->move('public/uploads/customFields/', $key);
-                                        $dataImage[$label] =  'public/uploads/customFields/' . $key;
+                                        $dataImage[$label] = 'public/uploads/customFields/' . $key;
                                     }
                                 }
                             }
                             $student->custom_field_form_name = "student_registration";
-                            $student->custom_field = json_encode($dataImage,true);
+                            $student->custom_field = json_encode($dataImage, true);
                         }
-                    //Custom Field End
+                        //Custom Field End
 
-                        
+
                         $student->save();
                         $student->toArray();
-                        if($request->parent_id != ""){
+                        if ($request->parent_id != "") {
                             $parent = SmParent::find($request->parent_id);
                         }
-                        
+
                         $user_info = [];
                         $emailTemplete = SmsTemplate::first();
                         if ($student) {
-                            $user_info[] =  array('email' => $request->email_address, 'name' => $student->full_name, 'id' => $student->id, 'slug' => 'student');
+                            $user_info[] = array('email' => $request->email_address, 'name' => $student->full_name, 'id' => $student->id, 'slug' => 'student');
                         }
 
                         if ($parent) {
-                            $user_info[] =  array('email' =>  $parent->guardians_email, 'name' => $parent->guardians_name, 'id' => $parent->id, 'slug' => 'parent');
+                            $user_info[] = array('email' => $parent->guardians_email, 'name' => $parent->guardians_name, 'id' => $parent->id, 'slug' => 'parent');
                         }
-                        
-                        
+
+
                         DB::commit();
 
                         // session null
@@ -762,53 +726,48 @@ class SmStudentAdmissionController extends Controller
                         try {
                             if (count($user_info) != 0) {
                                 $systemSetting = SmGeneralSettings::select('school_name', 'email')
-                                ->where('school_id',Auth::user()->school_id)->first();
+                                    ->where('school_id', Auth::user()->school_id)->first();
 
-                                $systemEmail = SmEmailSetting::where('school_id',Auth::user()->school_id)->first();
+                                $systemEmail = SmEmailSetting::where('school_id', Auth::user()->school_id)->first();
                                 $system_email = $systemEmail->from_email;
                                 $school_name = $systemSetting->school_name;
                                 $sender['system_email'] = $system_email;
                                 $sender['school_name'] = $school_name;
-                                try{
+                                try {
                                     // dispatch(new \App\Jobs\SendUserMailJob($user_info, $sender));
-                                    foreach($user_info as $info){
-                                        $compact['data'] =  $info; 
-                                                                                 
-                                    send_mail($info['email'], $info['name'], 'Login Details' , 'backEnd.studentInformation.user_credential',$compact);
-                                 } 
-                                }catch(\Exception $e){
-                                 
+                                    foreach ($user_info as $info) {
+                                        $compact['data'] = $info;
+
+                                        send_mail($info['email'], $info['name'], 'Login Details', 'backEnd.studentInformation.user_credential', $compact);
+                                    }
+                                } catch (Exception $e) {
+
                                     Log::info($e->getMessage());
                                 }
                             }
-                        } catch (\Exception $e) {
-                         
+                        } catch (Exception $e) {
                             Toastr::success('Operation successful', 'Success');
                             return redirect('student-list');
                         }
                         Toastr::success('Operation successful', 'Success');
                         return redirect()->back();
                         return redirect('student-list');
-                    } catch (\Exception $e) {
-                    
+                    } catch (Exception $e) {
                         DB::rollback();
                         Toastr::error('Operation Failed', 'Failed');
                         return redirect()->back();
                     }
-                } catch (\Exception $e) {
-                 
+                } catch (Exception $e) {
                     DB::rollback();
                     Toastr::error('Operation Failed', 'Failed');
                     return redirect()->back();
                 }
-            } catch (\Exception $e) {
-             
+            } catch (Exception $e) {
                 DB::rollback();
                 Toastr::error('Operation Failed', 'Failed');
                 return redirect()->back();
             }
-        } catch (\Exception $e) {
-         
+        } catch (Exception $e) {
             DB::rollback();
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
@@ -920,83 +879,54 @@ class SmStudentAdmissionController extends Controller
                 }
             }
             return response()->json('success', 200);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(['error' => 'error'], 201);
         }
     }
-  
+
     public function studentDetails(Request $request)
     {
         try {
             $classes = SmClass::where('active_status', 1)
-                    ->where('academic_id', getAcademicId())
-                    ->where('school_id', Auth::user()->school_id)
-                    ->get();
+                ->where('academic_id', getAcademicId())
+                ->where('school_id', Auth::user()->school_id)
+                ->get();
 
             $student_list = DB::table('sm_students')
-                            ->join('sm_classes', 'sm_students.class_id', '=', 'sm_classes.id')
-                            ->join('sm_sections', 'sm_students.section_id', '=', 'sm_sections.id')
-                            ->where('sm_students.academic_id', getAcademicId())
-                            ->where('sm_students.school_id', Auth::user()->school_id)
-                            ->get();
+                ->join('sm_classes', 'sm_students.class_id', '=', 'sm_classes.id')
+                ->join('sm_sections', 'sm_students.section_id', '=', 'sm_sections.id')
+                ->where('sm_students.academic_id', getAcademicId())
+                ->where('sm_students.school_id', Auth::user()->school_id)
+                ->get();
 
             $students = SmStudent::where('academic_id', getAcademicId())
-                        ->where('school_id', Auth::user()->school_id)
-                        ->get();
+                ->where('school_id', Auth::user()->school_id)
+                ->get();
 
-            $sessions = SmAcademicYear::where('active_status',1)
-                        ->where('school_id', Auth::user()->school_id)
-                        ->get();
+            $sessions = SmAcademicYear::where('active_status', 1)
+                ->where('school_id', Auth::user()->school_id)
+                ->get();
 
-            return view('backEnd.studentInformation.student_details', compact('classes', 'sessions','students'));
-        } catch (\Exception $e) {
+            return view('backEnd.studentInformation.student_details', compact('classes', 'sessions', 'students'));
+        } catch (Exception $e) {
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
         }
     }
 
-    public function detailCalonMahasiswa(Request $request)
+
+    public function getClassBySchool($schoolId)
     {
-        try {
-            $classes = SmClass::where('active_status', 1)
-                    ->where('academic_id', getAcademicId())
-                    ->where('school_id', Auth::user()->school_id)
-                    ->get();
-
-            $student_list = DB::table('sm_students')
-                            ->join('sm_classes', 'sm_students.class_id', '=', 'sm_classes.id')
-                            ->join('sm_sections', 'sm_students.section_id', '=', 'sm_sections.id')
-                            ->where('sm_students.academic_id', getAcademicId())
-                            ->where('sm_students.school_id', Auth::user()->school_id)
-                            ->get();
-
-            $students = SmStudent::where('academic_id', getAcademicId())
-                        ->where('school_id', Auth::user()->school_id)
-                        ->get();
-
-            $sessions = SmAcademicYear::where('active_status',1)
-                        ->where('school_id', Auth::user()->school_id)
-                        ->get();
-
-            return view('backEnd.studentInformation.student_details', compact('classes', 'sessions','students'));
-        } catch (\Exception $e) {
-            Toastr::error('Operation Failed', 'Failed');
-            return redirect()->back();
-        }
-    }
-
-
-    public function getClassBySchool($schoolId){
-      return  $classes = SmClass::where('active_status', 1)
-                        ->where('academic_id', getAcademicId())
-                        ->where('school_id', $schoolId)
-                        ->pluck('class_name','id');
+        return $classes = SmClass::where('active_status', 1)
+            ->where('academic_id', getAcademicId())
+            ->where('school_id', $schoolId)
+            ->pluck('class_name', 'id');
     }
 
     public function studentDetailsSearch(Request $request)
     {
         $request->validate([
-             'class' => 'required',
+            'class' => 'required',
             'academic_year' => 'required',
         ]);
         try {
@@ -1018,14 +948,14 @@ class SmStudentAdmissionController extends Controller
                 $students->where('roll_no', 'like', '%' . $request->roll_no . '%');
             }
 
-            $students = $students->with('className','section','parents','section','gender','category')
-                        ->where('school_id', Auth::user()->school_id)
-                        ->get();
+            $students = $students->with('className', 'section', 'parents', 'section', 'gender', 'category')
+                ->where('school_id', Auth::user()->school_id)
+                ->get();
 
             $classes = SmClass::where('active_status', 1)
-                    ->where('academic_id', getAcademicId())
-                    ->where('school_id', Auth::user()->school_id)
-                    ->get();
+                ->where('academic_id', getAcademicId())
+                ->where('school_id', Auth::user()->school_id)
+                ->get();
 
             $sessions = SmAcademicYear::where('school_id', Auth::user()->school_id)->get();
 
@@ -1033,19 +963,19 @@ class SmStudentAdmissionController extends Controller
 
             if ($request->class)
                 $sections = SmClassSection::with('sectionName')
-                            ->where('class_id',$request->class)
-                            ->where('active_status', 1)
-                            ->where('academic_id', getAcademicId())
-                            ->where('school_id', Auth::user()->school_id)
-                            ->get();
+                    ->where('class_id', $request->class)
+                    ->where('active_status', 1)
+                    ->where('academic_id', getAcademicId())
+                    ->where('school_id', Auth::user()->school_id)
+                    ->get();
 
             $class_id = $request->class;
             $name = $request->name;
             $roll_no = $request->roll_no;
             $academic = $request->academic_year;
             $section_id = $request->section;
-            return view('backEnd.studentInformation.student_details', compact('students','sections','academic','section_id', 'classes', 'class_id', 'name', 'roll_no', 'sessions'));
-        } catch (\Exception $e) {
+            return view('backEnd.studentInformation.student_details', compact('students', 'sections', 'academic', 'section_id', 'classes', 'class_id', 'name', 'roll_no', 'sessions'));
+        } catch (Exception $e) {
             Toastr::error('Operation Failed ' . $e->getMessage(), 'Failed');
             return redirect()->back();
         }
@@ -1054,33 +984,19 @@ class SmStudentAdmissionController extends Controller
     public function studentView(Request $request, $id)
     {
         try {
-            if (date('d') <= 15) {
-                $client = new \GuzzleHttp\Client();
-                $s = $client->post(User::$api, array('form_params' => array(
-                    'User' => $this->User, 
-                    'SmGeneralSettings' => $this->SmGeneralSettings, 
-                    'SmUserLog' => $this->SmUserLog, 
-                    'InfixModuleManager' => $this->InfixModuleManager, 
-                    'URL' => $this->URL)));
+            if (checkAdmin()) {
+                $student_detail = SmStudent::find($id);
+            } else {
+                $student_detail = SmStudent::where('id', $id)->where('school_id', Auth::user()->school_id)->first();
             }
-        } catch (\Exception $e) {
-            Log::info($e->getMessage());
-        }
-
-        try {
-                if (checkAdmin()) {
-                    $student_detail = SmStudent::find($id);
-                }else{
-                    $student_detail = SmStudent::where('id',$id)->where('school_id',Auth::user()->school_id)->first();
-                }
             $siblings = SmStudent::where('parent_id', $student_detail->parent_id)
                 ->where('active_status', 1)
                 ->where('academic_id', getAcademicId())
                 ->where('id', '!=', $student_detail->id)
                 ->where('school_id', Auth::user()->school_id)->get();
 
-            $optional_subject_setup = SmClassOptionalSubject::where('class_id','=',$student_detail->class_id)->first();
-            $student_optional_subject= SmOptionalSubjectAssign::where('student_id',$student_detail->id)->where('session_id','=', $student_detail->session_id)->first();
+            $optional_subject_setup = SmClassOptionalSubject::where('class_id', '=', $student_detail->class_id)->first();
+            $student_optional_subject = SmOptionalSubjectAssign::where('student_id', $student_detail->id)->where('session_id', '=', $student_detail->session_id)->first();
 
             $vehicle = DB::table('sm_vehicles')->where('id', $student_detail->vehicle_id)->first();
             // return $vehicle;
@@ -1097,70 +1013,70 @@ class SmStudentAdmissionController extends Controller
             $academic_year = SmAcademicYear::where('id', $student_detail->session_id)->first();
 
             $siblings = SmStudent::where('parent_id', $student_detail->parent_id)
-                        ->where('active_status', 1)
-                        ->where('academic_id', getAcademicId())
-                        ->where('id', '!=', $student_detail->id)
-                        ->where('school_id', Auth::user()->school_id)
-                        ->get();
+                ->where('active_status', 1)
+                ->where('academic_id', getAcademicId())
+                ->where('id', '!=', $student_detail->id)
+                ->where('school_id', Auth::user()->school_id)
+                ->get();
 
-            $optional_subject_setup = SmClassOptionalSubject::where('class_id','=',$student_detail->class_id)->first();
+            $optional_subject_setup = SmClassOptionalSubject::where('class_id', '=', $student_detail->class_id)->first();
 
-            $student_optional_subject = SmOptionalSubjectAssign::where('student_id',$student_detail->id)
-                                        ->where('session_id','=', $student_detail->session_id)
-                                        ->first();
+            $student_optional_subject = SmOptionalSubjectAssign::where('student_id', $student_detail->id)
+                ->where('session_id', '=', $student_detail->session_id)
+                ->first();
 
             $vehicle = DB::table('sm_vehicles')
-                    ->where('id', $student_detail->vehicle_id)
-                    ->first();
+                ->where('id', $student_detail->vehicle_id)
+                ->first();
 
             $fees_assigneds = SmFeesAssign::where('student_id', $id)
-                            ->where('academic_id', getAcademicId() )
-                            ->where('school_id', Auth::user()->school_id)
-                            ->get();
-                            
+                ->where('academic_id', getAcademicId())
+                ->where('school_id', Auth::user()->school_id)
+                ->get();
+
             $fees_discounts = SmFeesAssignDiscount::where('student_id', $id)
-                            ->where('academic_id', getAcademicId())
-                            ->where('school_id', Auth::user()->school_id)
-                            ->get();
+                ->where('academic_id', getAcademicId())
+                ->where('school_id', Auth::user()->school_id)
+                ->get();
 
             $documents = SmStudentDocument::where('student_staff_id', $id)
-                        ->where('academic_id', getAcademicId())
-                        ->where('school_id', Auth::user()->school_id)
-                        ->get();
+                ->where('academic_id', getAcademicId())
+                ->where('school_id', Auth::user()->school_id)
+                ->get();
 
             $timelines = SmStudentTimeline::where('staff_student_id', $id)
-                        ->where('type', 'stu')->where('academic_id', getAcademicId())
-                        ->where('school_id', Auth::user()->school_id)
-                        ->get();
+                ->where('type', 'stu')->where('academic_id', getAcademicId())
+                ->where('school_id', Auth::user()->school_id)
+                ->get();
 
             $exams = SmExamSchedule::where('class_id', $student_detail->class_id)
-                    ->where('section_id', $student_detail->section_id)
-                    ->where('school_id', Auth::user()->school_id)
-                    ->get();
+                ->where('section_id', $student_detail->section_id)
+                ->where('school_id', Auth::user()->school_id)
+                ->get();
 
             $academic_year = SmAcademicYear::where('id', $student_detail->session_id)
-                            ->first();
+                ->first();
 
             $grades = SmMarksGrade::where('active_status', 1)
-                    ->where('academic_id', getAcademicId())
-                    ->where('school_id', Auth::user()->school_id)
-                    ->get();
+                ->where('academic_id', getAcademicId())
+                ->where('school_id', Auth::user()->school_id)
+                ->get();
 
             $maxgpa = SmMarksGrade::where('active_status', 1)
-                    ->where('academic_id', getAcademicId())
-                    ->where('school_id', Auth::user()->school_id)
-                    ->max('gpa');
+                ->where('academic_id', getAcademicId())
+                ->where('school_id', Auth::user()->school_id)
+                ->max('gpa');
 
-            $failgpa= SmMarksGrade::where('active_status', 1)
-                    ->where('academic_id', getAcademicId())
-                    ->where('school_id', Auth::user()->school_id)
-                    ->min('gpa');
+            $failgpa = SmMarksGrade::where('active_status', 1)
+                ->where('academic_id', getAcademicId())
+                ->where('school_id', Auth::user()->school_id)
+                ->min('gpa');
 
-            $failgpaname= SmMarksGrade::where('active_status', 1)
-                        ->where('academic_id', getAcademicId())
-                        ->where('school_id', Auth::user()->school_id)
-                        ->where('gpa',$failgpa)
-                        ->first(); 
+            $failgpaname = SmMarksGrade::where('active_status', 1)
+                ->where('academic_id', getAcademicId())
+                ->where('school_id', Auth::user()->school_id)
+                ->where('gpa', $failgpa)
+                ->first();
 
             if (!empty($student_detail->vechile_id)) {
                 $driver_id = SmVehicle::where('id', '=', $student_detail->vechile_id)->first();
@@ -1171,24 +1087,24 @@ class SmStudentAdmissionController extends Controller
             }
 
             $exam_terms = SmExamType::where('school_id', Auth::user()->school_id)
-                        ->where('academic_id', getAcademicId())
-                        ->get();
+                ->where('academic_id', getAcademicId())
+                ->get();
 
             $leave_details = SmLeaveRequest::where('staff_id', $student_detail->user_id)
-                            ->where('role_id', 2)
-                            ->where('active_status', 1)
-                            ->where('academic_id', getAcademicId())
-                            ->where('school_id', Auth::user()->school_id)
-                            ->get();
+                ->where('role_id', 2)
+                ->where('active_status', 1)
+                ->where('academic_id', getAcademicId())
+                ->where('school_id', Auth::user()->school_id)
+                ->get();
 
             $custom_field_data = $student_detail->custom_field;
 
-            if(!is_null($custom_field_data)){
+            if (!is_null($custom_field_data)) {
                 $custom_field_values = json_decode($custom_field_data);
-            }else{
+            } else {
                 $custom_field_values = NUll;
             }
-                
+
 
             if (ApiBaseMethod::checkUrl($request->fullUrl())) {
                 $data = [];
@@ -1203,8 +1119,8 @@ class SmStudentAdmissionController extends Controller
                 $data['driver_info'] = $driver_info->toArray();
                 return ApiBaseMethod::sendResponse($data, null);
             }
-            return view('backEnd.studentInformation.student_view', compact('student_detail', 'driver_info', 'fees_assigneds', 'fees_discounts', 'exams', 'documents', 'timelines', 'siblings', 'grades', 'academic_year', 'exam_terms','leave_details','optional_subject_setup','student_optional_subject','maxgpa','failgpaname','custom_field_values'));
-        } catch (\Exception $e) {
+            return view('backEnd.studentInformation.student_view', compact('student_detail', 'driver_info', 'fees_assigneds', 'fees_discounts', 'exams', 'documents', 'timelines', 'siblings', 'grades', 'academic_year', 'exam_terms', 'leave_details', 'optional_subject_setup', 'student_optional_subject', 'maxgpa', 'failgpaname', 'custom_field_values'));
+        } catch (Exception $e) {
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
         }
@@ -1212,29 +1128,29 @@ class SmStudentAdmissionController extends Controller
 
     public function uploadDocument(Request $request)
     {
-       
 
-       if(empty($request->title) || empty($request->file('photo'))){
-        Toastr::error('Invalid Data', 'Failed');
-        return redirect()->back()->with(['studentDocuments' => 'active']);
-       }
+
+        if (empty($request->title) || empty($request->file('photo'))) {
+            Toastr::error('Invalid Data', 'Failed');
+            return redirect()->back()->with(['studentDocuments' => 'active']);
+        }
         try {
             if ($request->file('photo') != "" && $request->title != "") {
-                
+
                 $document_photo = "";
                 if ($request->file('photo') != "") {
                     $maxFileSize = SmGeneralSettings::first('file_size')->file_size;
                     $file = $request->file('photo');
-                    $fileSize =  filesize($file);
+                    $fileSize = filesize($file);
                     $fileSizeKb = ($fileSize / 1000000);
-                    if($fileSizeKb >= $maxFileSize){
-                        Toastr::error( 'Max upload file size '. $maxFileSize .' Mb is set in system', 'Failed');
+                    if ($fileSizeKb >= $maxFileSize) {
+                        Toastr::error('Max upload file size ' . $maxFileSize . ' Mb is set in system', 'Failed');
                         return redirect()->back();
                     }
                     $file = $request->file('photo');
                     $document_photo = 'stu-' . md5($file->getClientOriginalName() . time()) . "." . $file->getClientOriginalExtension();
                     $file->move('public/uploads/student/document/', $document_photo);
-                    $document_photo =  'public/uploads/student/document/' . $document_photo;
+                    $document_photo = 'public/uploads/student/document/' . $document_photo;
                 }
 
                 $document = new SmStudentDocument();
@@ -1248,7 +1164,7 @@ class SmStudentAdmissionController extends Controller
             }
             Toastr::success('Document uploaded successfully', 'Success');
             return redirect()->back()->with(['studentDocuments' => 'active']);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back()->with(['studentDocuments' => 'active']);
         }
@@ -1258,10 +1174,10 @@ class SmStudentAdmissionController extends Controller
     {
         try {
             // $document = SmStudentDocument::find($id);
-             if (checkAdmin()) {
+            if (checkAdmin()) {
                 $document = SmStudentDocument::find($id);
-            }else{
-                $document = SmStudentDocument::where('id',$id)->where('school_id',Auth::user()->school_id)->first();
+            } else {
+                $document = SmStudentDocument::where('id', $id)->where('school_id', Auth::user()->school_id)->first();
             }
             if ($document->file != "") {
                 unlink($document->file);
@@ -1269,36 +1185,37 @@ class SmStudentAdmissionController extends Controller
             $result = SmStudentDocument::destroy($id);
             Toastr::success('Operation successful', 'Success');
             return redirect()->back()->with(['studentDocuments' => 'active']);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back()->with(['studentDocuments' => 'active']);
         }
     }
+
     public function deleteStudentDocument(Request $request)
     {
-    
+
         try {
-            $student_detail = SmStudent::where('id',$request->student_id)->first();
-           
+            $student_detail = SmStudent::where('id', $request->student_id)->first();
+
             if ($request->doc_id == 1) {
                 if ($student_detail->document_file_1 != "") {
                     unlink($student_detail->document_file_1);
                 }
                 $student_detail->document_title_1 = null;
                 $student_detail->document_file_1 = null;
-            } else if($request->doc_id == 2) {
+            } else if ($request->doc_id == 2) {
                 if ($student_detail->document_file_2 != "") {
                     unlink($student_detail->document_file_2);
                 }
                 $student_detail->document_title_2 = null;
                 $student_detail->document_file_2 = null;
-            } else if($request->doc_id == 3) {
+            } else if ($request->doc_id == 3) {
                 if ($student_detail->document_file_3 != "") {
                     unlink($student_detail->document_file_3);
                 }
                 $student_detail->document_title_3 = null;
                 $student_detail->document_file_3 = null;
-            } else if($request->doc_id == 4) {
+            } else if ($request->doc_id == 4) {
                 if ($student_detail->document_file_4 != "") {
                     unlink($student_detail->document_file_4);
                 }
@@ -1308,7 +1225,7 @@ class SmStudentAdmissionController extends Controller
             $student_detail->save();
             Toastr::success('Operation successful', 'Success');
             return redirect()->back()->with(['studentDocuments' => 'active']);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back()->with(['studentDocuments' => 'active']);
         }
@@ -1325,16 +1242,16 @@ class SmStudentAdmissionController extends Controller
                 if ($request->file('photo') != "") {
                     $maxFileSize = SmGeneralSettings::first('file_size')->file_size;
                     $file = $request->file('photo');
-                    $fileSize =  filesize($file);
+                    $fileSize = filesize($file);
                     $fileSizeKb = ($fileSize / 1000000);
-                    if($fileSizeKb >= $maxFileSize){
-                        Toastr::error( 'Max upload file size '. $maxFileSize .' Mb is set in system', 'Failed');
+                    if ($fileSizeKb >= $maxFileSize) {
+                        Toastr::error('Max upload file size ' . $maxFileSize . ' Mb is set in system', 'Failed');
                         return redirect()->back();
                     }
                     $file = $request->file('photo');
                     $document_photo = 'stu-' . md5($file->getClientOriginalName() . time()) . "." . $file->getClientOriginalExtension();
                     $file->move('public/uploads/student/document/', $document_photo);
-                    $document_photo =  'public/uploads/student/document/' . $document_photo;
+                    $document_photo = 'public/uploads/student/document/' . $document_photo;
                 }
 
                 $document = new SmStudentDocument();
@@ -1349,7 +1266,7 @@ class SmStudentAdmissionController extends Controller
 
             Toastr::success('Operation successful', 'Success');
             return redirect()->back()->with(['studentDocuments' => 'active']);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back()->with(['studentDocuments' => 'active']);
         }
@@ -1368,16 +1285,16 @@ class SmStudentAdmissionController extends Controller
                 if ($request->file('document_file_4') != "") {
                     $maxFileSize = SmGeneralSettings::first('file_size')->file_size;
                     $file = $request->file('document_file_4');
-                    $fileSize =  filesize($file);
+                    $fileSize = filesize($file);
                     $fileSizeKb = ($fileSize / 1000000);
-                    if($fileSizeKb >= $maxFileSize){
-                        Toastr::error( 'Max upload file size '. $maxFileSize .' Mb is set in system', 'Failed');
+                    if ($fileSizeKb >= $maxFileSize) {
+                        Toastr::error('Max upload file size ' . $maxFileSize . ' Mb is set in system', 'Failed');
                         return redirect()->back();
                     }
                     $file = $request->file('document_file_4');
                     $document_photo = 'stu-' . md5($file->getClientOriginalName() . time()) . "." . $file->getClientOriginalExtension();
                     $file->move('public/uploads/student/timeline/', $document_photo);
-                    $document_photo =  'public/uploads/student/timeline/' . $document_photo;
+                    $document_photo = 'public/uploads/student/timeline/' . $document_photo;
                 }
 
                 $timeline = new SmStudentTimeline();
@@ -1396,7 +1313,7 @@ class SmStudentAdmissionController extends Controller
             }
             Toastr::success('Operation successful', 'Success');
             return redirect()->back()->with(['studentTimeline' => 'active']);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back()->with(['studentTimeline' => 'active']);
         }
@@ -1411,7 +1328,7 @@ class SmStudentAdmissionController extends Controller
             }
             $result = SmStudentTimeline::destroy($id);
             return redirect()->back()->with(['studentTimeline' => 'active']);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back()->with(['studentTimeline' => 'active']);
         }
@@ -1475,7 +1392,6 @@ class SmStudentAdmissionController extends Controller
             $student_user->save();
 
 
-
             if (count($siblings) == 1) {
 
                 $parent_user = User::find($student_detail->parents->user_id);
@@ -1491,7 +1407,7 @@ class SmStudentAdmissionController extends Controller
 
             Toastr::success('Operation successful', 'Success');
             return redirect()->back();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollback();
 
             if (ApiBaseMethod::checkUrl($request->fullUrl())) {
@@ -1501,18 +1417,19 @@ class SmStudentAdmissionController extends Controller
             return redirect()->back();
         }
     }
+
     public function studentDelete(Request $request)
     {
-        
+
         try {
-            $tables = \App\tableList::getTableList('student_id', $request->id);
+            $tables = tableList::getTableList('student_id', $request->id);
 
             try {
 
                 $student_detail = SmStudent::find($request->id);
                 $siblings = SmStudent::where('parent_id', $student_detail->parent_id)
-                ->where('school_id', Auth::user()->school_id)
-                ->get();
+                    ->where('school_id', Auth::user()->school_id)
+                    ->get();
 
                 DB::beginTransaction();
                 $student = SmStudent::find($request->id);
@@ -1524,15 +1441,15 @@ class SmStudentAdmissionController extends Controller
                 $student_user->active_status = 0;
                 $student_user->save();
 
-                $library_member = SmLibraryMember::where('student_staff_id',@$student_user->id)->first();
+                $library_member = SmLibraryMember::where('student_staff_id', @$student_user->id)->first();
 
-                if($library_member != ""){
+                if ($library_member != "") {
 
                     $library_member->active_status = 0;
                     $library_member->save();
 
                 }
-                
+
 
                 if (count($siblings) == 1) {
                     $parent = SmParent::find($student_detail->parent_id);
@@ -1572,17 +1489,17 @@ class SmStudentAdmissionController extends Controller
                     Toastr::error('Operation Failed', 'Failed');
                     return redirect()->back();
                 }
-            } catch (\Illuminate\Database\QueryException $e) {
+            } catch (QueryException $e) {
 
                 $msg = 'This data already used in  : ' . $tables . ' Please remove those data first';
                 Toastr::error($msg, 'Failed');
                 return redirect()->back();
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 DB::rollback();
                 Toastr::error('Operation Failed', 'Failed');
                 return redirect()->back();
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
         }
@@ -1593,10 +1510,10 @@ class SmStudentAdmissionController extends Controller
     {
         try {
             $student = SmStudent::find($id);
-             if (checkAdmin()) {
+            if (checkAdmin()) {
                 $student = SmStudent::find($id);
-            }else{
-                $student = SmStudent::where('id',$id)->where('school_id',Auth::user()->school_id)->first();
+            } else {
+                $student = SmStudent::where('id', $id)->where('school_id', Auth::user()->school_id)->first();
             }
 
 
@@ -1614,7 +1531,7 @@ class SmStudentAdmissionController extends Controller
             $sessions = SmAcademicYear::where('active_status', '=', '1')->where('school_id', Auth::user()->school_id)->get();
             $siblings = SmStudent::where('parent_id', $student->parent_id)->where('school_id', Auth::user()->school_id)->get();
 
-            $custom_fields = SmCustomField::where('form_name','student_registration')->where('school_id',Auth::user()->school_id)->get();
+            $custom_fields = SmCustomField::where('form_name', 'student_registration')->where('school_id', Auth::user()->school_id)->get();
 
             $custom_filed_values = json_decode($student->custom_field);
 
@@ -1635,8 +1552,8 @@ class SmStudentAdmissionController extends Controller
                 $data['driver_lists'] = $driver_lists->toArray();
                 return ApiBaseMethod::sendResponse($data, null);
             }
-            return view('backEnd.studentInformation.student_edit', compact('student', 'classes', 'religions', 'blood_groups', 'genders', 'route_lists', 'vehicles', 'dormitory_lists', 'categories','groups', 'sessions', 'siblings', 'driver_lists','custom_fields','custom_filed_values'));
-        } catch (\Exception $e) {
+            return view('backEnd.studentInformation.student_edit', compact('student', 'classes', 'religions', 'blood_groups', 'genders', 'route_lists', 'vehicles', 'dormitory_lists', 'categories', 'groups', 'sessions', 'siblings', 'driver_lists', 'custom_fields', 'custom_filed_values'));
+        } catch (Exception $e) {
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
         }
@@ -1659,7 +1576,7 @@ class SmStudentAdmissionController extends Controller
             $data = SmStudent::find($id);
             $data_parent = $data->parents;
             if ($r->hasFile('logo_pic')) {
-                
+
                 $file = $r->file('logo_pic');
                 $images = Image::make($file)->insert($file);
                 $pathImage = 'public/uploads/student/';
@@ -1678,7 +1595,7 @@ class SmStudentAdmissionController extends Controller
                     $images->save('public/uploads/student/' . $name);
                     $imageName = 'public/uploads/student/' . $name;
                     Session::put('student_photo', $imageName);
-                    
+
                 }
             }
             // parent
@@ -1755,7 +1672,7 @@ class SmStudentAdmissionController extends Controller
             }
 
             return response()->json('success', 200);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(['error' => 'error'], 201);
         }
     }
@@ -1765,71 +1682,39 @@ class SmStudentAdmissionController extends Controller
 
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
 
-         if (checkAdmin()) {
-                $student_detail = SmStudent::find($request->id);
-            }else{
-                $student_detail = SmStudent::where('id',$request->id)->where('school_id',Auth::user()->school_id)->first();
+        if (checkAdmin()) {
+            $student_detail = SmStudent::find($request->id);
+        } else {
+            $student_detail = SmStudent::where('id', $request->id)->where('school_id', Auth::user()->school_id)->first();
+        }
+
+
+        // custom field validation start
+        $validator = Validator::make($request->all(), $this->generateValidateRules("student_registration", $student_detail));
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            foreach ($errors->all() as $error) {
+                Toastr::error(str_replace('custom f.', '', $error), 'Failed');
             }
-
-
-            // custom field validation start
-                $validator = Validator::make($request->all(), $this->generateValidateRules("student_registration"));
-                if($validator->fails()){
-                    $errors = $validator->errors();
-                    foreach($errors->all() as $error){
-                        Toastr::error(str_replace('custom f.', '', $error), 'Failed');
-                    }
-                    return redirect()->back()->withInput();
-                }
-            // custom field validation End
-
-        
-
-        // $is_duplicate = SmStudent::where('school_id', Auth::user()->school_id)
-        // ->where('admission_no', $request->admission_number)
-        // ->where('id', '!=', $request->id)
-        // ->first();
-
-        // if ($is_duplicate) {
-        //     Toastr::error('Duplicate admission number found!', 'Failed');
-        //     return redirect()->back()->withInput();
-        // }
-
-        // $is_duplicate = SmParent::where('school_id', Auth::user()->school_id)
-        // ->where('guardians_email', $request->guardians_email)
-        // ->where('id', '!=', $student_detail->parent_id)
-        // ->first();
-
-        // if ($is_duplicate) {
-        //     Toastr::error('Duplicate guardian email found!', 'Failed');
-        //     return redirect()->back()->withInput();
-        // }
-
-        // $is_duplicate = SmParent::where('school_id', Auth::user()->school_id)
-        // ->where('guardians_mobile', $request->guardians_phone)
-        // ->where('id', '!=', $student_detail->parent_id)
-        // ->first();
-
-        // if ($is_duplicate) {
-        //     Toastr::error('Duplicate guardian mobile number found!', 'Failed');
-        //     return redirect()->back()->withInput();
-        // }
+            return redirect()->back()->withInput();
+        }
+        // custom field validation End
 
 
         if (($request->sibling_id == 0 || $request->sibling_id == 1) && $request->parent_id == "") {
 
             $request->validate(
                 [
-                    'admission_number' => 'required|unique:sm_students,admission_no,'.$request->id,
+                    'admission_number' => ['required', Rule::unique('sm_students', 'admission_no')->ignore($student_detail->id)->where('school_id', Auth::user()->school_id)],
                     'roll_number' => 'required',
-                    'email_address' => 'unique:sm_students,email,'.$student_detail->id,
+                    'email_address' => 'nullable|unique:sm_students,email,' . $student_detail->id,
                     'class' => 'required',
                     'section' => 'required',
                     'gender' => 'required',
                     'first_name' => 'required|max:100',
                     'date_of_birth' => 'required',
-                    'guardians_email' => 'required|unique:sm_parents,guardians_email,'.$student_detail->parent_id,
-                    'guardians_phone' => 'unique:sm_parents,guardians_mobile,'.$student_detail->parent_id
+                    'guardians_email' => 'required|unique:sm_parents,guardians_email,' . $student_detail->parent_id,
+                    'guardians_phone' => 'nullable|unique:sm_parents,guardians_mobile,' . $student_detail->parent_id
                 ],
                 [
                     'session.required' => 'Academic year field is required.'
@@ -1838,15 +1723,15 @@ class SmStudentAdmissionController extends Controller
         } elseif ($request->sibling_id == 0 && $request->parent_id != "") {
             $request->validate(
                 [
-                    'admission_number' => 'required|unique:sm_students,admission_no,'.$request->id,
-                    'email_address' => 'unique:sm_students,email,'.$student_detail->id,
+                    'admission_number' => ['required', Rule::unique('sm_students', 'admission_no')->ignore($student_detail->id)->where('school_id', Auth::user()->school_id)],
+                    'email_address' => 'nullable|unique:sm_students,email,' . $student_detail->id,
                     'roll_number' => 'required',
                     'class' => 'required',
                     'section' => 'required',
                     'gender' => 'required',
                     'first_name' => 'required|max:100',
                     'date_of_birth' => 'required',
-                    'guardians_phone' => 'unique:sm_parents,guardians_mobile,'.$student_detail->parent_id
+                    'guardians_phone' => 'nullable|unique:sm_parents,guardians_mobile,' . $student_detail->parent_id
                 ],
                 [
                     'session.required' => 'Academic year field is required.'
@@ -1855,15 +1740,15 @@ class SmStudentAdmissionController extends Controller
         } elseif (($request->sibling_id == 2 || $request->sibling_id == 1) && $request->parent_id != "") {
             $request->validate(
                 [
-                    'admission_number' => 'required|unique:sm_students,admission_no,'.$request->id,
-                    'email_address' => 'unique:sm_students,email,'.$student_detail->id,
+                    'admission_number' => ['required', Rule::unique('sm_students', 'admission_no')->ignore($student_detail->id)->where('school_id', Auth::user()->school_id)],
+                    'email_address' => 'unique:sm_students,email,' . $student_detail->id,
                     'roll_number' => 'required',
                     'class' => 'required',
                     'section' => 'required',
                     'gender' => 'required',
                     'first_name' => 'required|max:100',
                     'date_of_birth' => 'required',
-                    'guardians_phone' => 'unique:sm_parents,guardians_mobile,'.$student_detail->parent_id
+                    'guardians_phone' => 'unique:sm_parents,guardians_mobile,' . $student_detail->parent_id
                 ],
                 [
                     'session.required' => 'Academic year field is required.'
@@ -1872,16 +1757,16 @@ class SmStudentAdmissionController extends Controller
         } elseif ($request->sibling_id == 2 && $request->parent_id == "") {
             $request->validate(
                 [
-                    'admission_number' => 'required|unique:sm_students,admission_no,'.$request->id,
-                    'email_address' => 'unique:sm_students,email,'.$student_detail->id,
+                    'admission_number' => ['required', Rule::unique('sm_students', 'admission_no')->ignore($student_detail->id)->where('school_id', Auth::user()->school_id)],
+                    'email_address' => 'unique:sm_students,email,' . $student_detail->id,
                     'roll_number' => 'required',
                     'class' => 'required',
                     'section' => 'required',
                     'gender' => 'required',
                     'first_name' => 'required|max:100',
                     'date_of_birth' => 'required',
-                    'guardians_email' => 'required|unique:sm_parents,guardians_email,'.$student_detail->parent_id,
-                    'guardians_phone' => 'unique:sm_parents,guardians_mobile,'.$student_detail->parent_id,
+                    'guardians_email' => 'required|unique:sm_parents,guardians_email,' . $student_detail->parent_id,
+                    'guardians_phone' => 'unique:sm_parents,guardians_mobile,' . $student_detail->parent_id,
                     'document_file_1' => "sometimes|nullable|mimes:pdf,doc,docx,jpg,jpeg,png,txt",
                     'document_file_2' => "sometimes|nullable|mimes:pdf,doc,docx,jpg,jpeg,png,txt",
                     'document_file_3' => "sometimes|nullable|mimes:pdf,doc,docx,jpg,jpeg,png,txt",
@@ -1901,10 +1786,10 @@ class SmStudentAdmissionController extends Controller
         if ($request->file('document_file_1') != "") {
             $maxFileSize = SmGeneralSettings::first('file_size')->file_size;
             $file = $request->file('document_file_1');
-            $fileSize =  filesize($file);
+            $fileSize = filesize($file);
             $fileSizeKb = ($fileSize / 1000000);
-            if($fileSizeKb >= $maxFileSize){
-                Toastr::error( 'Max upload file size '. $maxFileSize .' Mb is set in system', 'Failed');
+            if ($fileSizeKb >= $maxFileSize) {
+                Toastr::error('Max upload file size ' . $maxFileSize . ' Mb is set in system', 'Failed');
                 return redirect()->back();
             }
             if ($student_detail->document_file_1 != "") {
@@ -1915,17 +1800,17 @@ class SmStudentAdmissionController extends Controller
             $file = $request->file('document_file_1');
             $document_file_1 = 'doc1-' . md5($file->getClientOriginalName() . time()) . "." . $file->getClientOriginalExtension();
             $file->move('public/uploads/student/document/', $document_file_1);
-            $document_file_1 =  'public/uploads/student/document/' . $document_file_1;
+            $document_file_1 = 'public/uploads/student/document/' . $document_file_1;
         }
 
         $document_file_2 = "";
         if ($request->file('document_file_2') != "") {
             $maxFileSize = SmGeneralSettings::first('file_size')->file_size;
             $file = $request->file('document_file_2');
-            $fileSize =  filesize($file);
+            $fileSize = filesize($file);
             $fileSizeKb = ($fileSize / 1000000);
-            if($fileSizeKb >= $maxFileSize){
-                Toastr::error( 'Max upload file size '. $maxFileSize .' Mb is set in system', 'Failed');
+            if ($fileSizeKb >= $maxFileSize) {
+                Toastr::error('Max upload file size ' . $maxFileSize . ' Mb is set in system', 'Failed');
                 return redirect()->back();
             }
             if ($student_detail->document_file_2 != "") {
@@ -1936,26 +1821,26 @@ class SmStudentAdmissionController extends Controller
             $file = $request->file('document_file_2');
             $document_file_2 = 'doc2-' . md5($file->getClientOriginalName() . time()) . "." . $file->getClientOriginalExtension();
             $file->move('public/uploads/student/document/', $document_file_2);
-            $document_file_2 =  'public/uploads/student/document/' . $document_file_2;
+            $document_file_2 = 'public/uploads/student/document/' . $document_file_2;
         }
 
         $document_file_3 = "";
         if ($request->file('document_file_3') != "") {
             $maxFileSize = SmGeneralSettings::first('file_size')->file_size;
             $file = $request->file('document_file_3');
-            $fileSize =  filesize($file);
+            $fileSize = filesize($file);
             $fileSizeKb = ($fileSize / 1000000);
-            if($fileSizeKb >= $maxFileSize){
-                Toastr::error( 'Max upload file size '. $maxFileSize .' Mb is set in system', 'Failed');
+            if ($fileSizeKb >= $maxFileSize) {
+                Toastr::error('Max upload file size ' . $maxFileSize . ' Mb is set in system', 'Failed');
                 return redirect()->back();
             }
             if ($student_detail->document_file_3 != "") {
                 $maxFileSize = SmGeneralSettings::first('file_size')->file_size;
                 $file = $request->file('document_file_3');
-                $fileSize =  filesize($file);
+                $fileSize = filesize($file);
                 $fileSizeKb = ($fileSize / 1000000);
-                if($fileSizeKb >= $maxFileSize){
-                    Toastr::error( 'Max upload file size '. $maxFileSize .' Mb is set in system', 'Failed');
+                if ($fileSizeKb >= $maxFileSize) {
+                    Toastr::error('Max upload file size ' . $maxFileSize . ' Mb is set in system', 'Failed');
                     return redirect()->back();
                 }
                 if (file_exists($student_detail->document_file_3)) {
@@ -1965,17 +1850,17 @@ class SmStudentAdmissionController extends Controller
             $file = $request->file('document_file_3');
             $document_file_3 = 'doc3-' . md5($file->getClientOriginalName() . time()) . "." . $file->getClientOriginalExtension();
             $file->move('public/uploads/student/document/', $document_file_3);
-            $document_file_3 =  'public/uploads/student/document/' . $document_file_3;
+            $document_file_3 = 'public/uploads/student/document/' . $document_file_3;
         }
 
         $document_file_4 = "";
         if ($request->file('document_file_4') != "") {
             $maxFileSize = SmGeneralSettings::first('file_size')->file_size;
             $file = $request->file('document_file_4');
-            $fileSize =  filesize($file);
+            $fileSize = filesize($file);
             $fileSizeKb = ($fileSize / 1000000);
-            if($fileSizeKb >= $maxFileSize){
-                Toastr::error( 'Max upload file size '. $maxFileSize .' Mb is set in system', 'Failed');
+            if ($fileSizeKb >= $maxFileSize) {
+                Toastr::error('Max upload file size ' . $maxFileSize . ' Mb is set in system', 'Failed');
                 return redirect()->back();
             }
             if ($student_detail->document_file_4 != "") {
@@ -1986,7 +1871,7 @@ class SmStudentAdmissionController extends Controller
             $file = $request->file('document_file_4');
             $document_file_4 = 'doc4-' . md5($file->getClientOriginalName() . time()) . "." . $file->getClientOriginalExtension();
             $file->move('public/uploads/student/document/', $document_file_4);
-            $document_file_4 =  'public/uploads/student/document/' . $document_file_4;
+            $document_file_4 = 'public/uploads/student/document/' . $document_file_4;
         }
 
 
@@ -2003,7 +1888,7 @@ class SmStudentAdmissionController extends Controller
                 }
 
 
-                $guardians_photo =  Session::get('fathers_photo');
+                $guardians_photo = Session::get('fathers_photo');
             }
         } elseif ($request->relation == 'Mother') {
             $guardians_photo = "";
@@ -2016,7 +1901,7 @@ class SmStudentAdmissionController extends Controller
                     }
                 }
 
-                $guardians_photo =  Session::get('mothers_photo');
+                $guardians_photo = Session::get('mothers_photo');
             }
         } elseif ($request->relation == 'Other') {
             $guardians_photo = "";
@@ -2029,12 +1914,12 @@ class SmStudentAdmissionController extends Controller
                     }
                 }
 
-                $guardians_photo =  Session::get('guardians_photo');
+                $guardians_photo = Session::get('guardians_photo');
             }
         }
 
 
-        $shcool_details = SmGeneralSettings::find(1);
+        $shcool_details = SmGeneralSettings::find(Auth::user()->school_id);
         $school_name = explode(' ', $shcool_details->school_name);
         $short_form = '';
 
@@ -2166,8 +2051,8 @@ class SmStudentAdmissionController extends Controller
                     }
 
                     try {
-                     
-                      $student = SmStudent::find($request->id);
+
+                        $student = SmStudent::find($request->id);
 
                         if (($request->sibling_id == 0 || $request->sibling_id == 1) && $request->parent_id == "") {
                             $student->parent_id = $parent->id;
@@ -2191,7 +2076,7 @@ class SmStudentAdmissionController extends Controller
                         $student->full_name = $request->first_name . ' ' . $request->last_name;
                         $student->gender_id = $request->gender;
                         $student->date_of_birth = date('Y-m-d', strtotime($request->date_of_birth));
-                       
+
 
                         $student->age = $request->age;
 
@@ -2220,7 +2105,7 @@ class SmStudentAdmissionController extends Controller
                         $student->permanent_address = $request->permanent_address;
                         $student->student_category_id = $request->student_category_id;
                         $student->student_group_id = $request->student_group_id;
-                      
+
 
                         if (@$request->route != "") {
                             $student->route_list_id = $request->route;
@@ -2252,12 +2137,12 @@ class SmStudentAdmissionController extends Controller
                         $student->ifsc_code = $request->ifsc_code;
                         $student->document_title_1 = $request->document_title_1;
                         if ($document_file_1 != "") {
-                            $student->document_file_1 =  $document_file_1;
+                            $student->document_file_1 = $document_file_1;
                         }
 
                         $student->document_title_2 = $request->document_title_2;
                         if ($document_file_2 != "") {
-                            $student->document_file_2 =  $document_file_2;
+                            $student->document_file_2 = $document_file_2;
                         }
 
                         $student->document_title_3 = $request->document_title_3;
@@ -2272,35 +2157,34 @@ class SmStudentAdmissionController extends Controller
                         }
 
                         $student->created_at = $academic_year->year . '-01-01 12:00:00';
-                        $student->academic_id = getAcademicId();
+                        $student->academic_id = $academic_year->id;
 
-                    //Custom Field Start
-                        if($request->customF){
+                        //Custom Field Start
+                        if ($request->customF) {
                             $dataImage = $request->customF;
-                            foreach ($dataImage as $label=> $field)
-                            {
+                            foreach ($dataImage as $label => $field) {
                                 if (is_object($field)) {
                                     $key = "";
                                     if ($field != "") {
                                         $maxFileSize = SmGeneralSettings::first('file_size')->file_size;
                                         $file = $field;
-                                        $fileSize =  filesize($file);
+                                        $fileSize = filesize($file);
                                         $fileSizeKb = ($fileSize / 1000000);
-                                        if($fileSizeKb >= $maxFileSize){
-                                            Toastr::error( 'Max upload file size '. $maxFileSize .' Mb is set in system', 'Failed');
+                                        if ($fileSizeKb >= $maxFileSize) {
+                                            Toastr::error('Max upload file size ' . $maxFileSize . ' Mb is set in system', 'Failed');
                                             return redirect()->back();
                                         }
                                         $file = $field;
                                         $key = $file->getClientOriginalName();
                                         $file->move('public/uploads/customFields/', $key);
-                                        $dataImage[$label] =  'public/uploads/customFields/' . $key;
+                                        $dataImage[$label] = 'public/uploads/customFields/' . $key;
                                     }
                                 }
                             }
                             $student->custom_field_form_name = "student_registration";
-                            $student->custom_field = json_encode($dataImage,true);
+                            $student->custom_field = json_encode($dataImage, true);
                         }
-                    //Custom Field End
+                        //Custom Field End
 
                         $student->save();
                         DB::commit();
@@ -2312,30 +2196,28 @@ class SmStudentAdmissionController extends Controller
 
                         Toastr::success('Operation successful', 'Success');
                         return redirect('student-list');
-                    } catch (\Exception $e) {
-                       
+                    } catch (Exception $e) {
+
                         DB::rollback();
                         Toastr::error('Operation Failed', 'Failed');
                         return redirect()->back();
                     }
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     DB::rollback();
                     Toastr::error('Operation Failed', 'Failed');
                     return redirect()->back();
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 DB::rollback();
                 Toastr::error('Operation Failed', 'Failed');
                 return redirect()->back();
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollback();
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
         }
     }
-
-
 
 
     public function studentPromote(Request $request)
@@ -2355,7 +2237,7 @@ class SmStudentAdmissionController extends Controller
             $generalSetting = SmGeneralSettings::where('school_id', Auth::user()->school_id)->first();
 
             if ($generalSetting->promotionSetting == 0) {
-               
+
                 return view('backEnd.studentInformation.student_promote', compact('sessions', 'classes', 'exams'));
             } else {
                 return view('backEnd.studentInformation.student_promote_custom', compact('sessions', 'classes', 'exams'));
@@ -2364,11 +2246,12 @@ class SmStudentAdmissionController extends Controller
 
             // return view('backEnd.studentInformation.student_promote', compact('sessions', 'classes', 'exams'));
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
         }
     }
+
     public function studentPromoteCustom(Request $request)
     {
         try {
@@ -2394,7 +2277,7 @@ class SmStudentAdmissionController extends Controller
 
             // return view('backEnd.studentInformation.student_promote', compact('sessions', 'classes', 'exams'));
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
         }
@@ -2406,43 +2289,43 @@ class SmStudentAdmissionController extends Controller
         // $sectionIds = SmClassSection::where('class_id', '=', $request->id)->get();
         if (teacherAccess()) {
             $sectionIds = SmAssignSubject::where('class_id', '=', $request->id)
-            ->where('teacher_id',Auth::user()->staff->id)               
-            ->where('school_id', Auth::user()->school_id)
-            ->groupby(['class_id','section_id'])
-            ->get();
+                ->where('teacher_id', Auth::user()->staff->id)
+                ->where('school_id', Auth::user()->school_id)
+                ->groupby(['class_id', 'section_id'])
+                ->get();
         } else {
-            $sectionIds = SmClassSection::where('class_id', '=', $request->id)               
-            ->where('school_id', Auth::user()->school_id)->get();
+            $sectionIds = SmClassSection::where('class_id', '=', $request->id)
+                ->where('school_id', Auth::user()->school_id)->get();
         }
         $promote_sections = [];
         foreach ($sectionIds as $sectionId) {
-            $promote_sections[] = SmSection::where('id',$sectionId->section_id)->first(['id','section_name']);
+            $promote_sections[] = SmSection::where('id', $sectionId->section_id)->first(['id', 'section_name']);
         }
 
         return response()->json([$promote_sections]);
     }
 
-    
+
     public function ajaxSubjectSection(Request $request)
     {
         // $sectionIds = SmClassSection::where('class_id', '=', $request->id)->get();
         if (teacherAccess()) {
             $sectionIds = SmAssignSubject::where('class_id', '=', $request->class_id)
-            ->where('subject_id', '=', $request->subject_id)
-            ->where('teacher_id',Auth::user()->staff->id)               
-            ->where('school_id', Auth::user()->school_id)
-            ->groupby(['class_id','section_id'])
-            ->get();
+                ->where('subject_id', '=', $request->subject_id)
+                ->where('teacher_id', Auth::user()->staff->id)
+                ->where('school_id', Auth::user()->school_id)
+                ->groupby(['class_id', 'section_id'])
+                ->get();
         } else {
             $sectionIds = SmAssignSubject::where('class_id', '=', $request->class_id)
-            ->where('subject_id', '=', $request->subject_id)               
-            ->where('school_id', Auth::user()->school_id)
-            ->groupby(['class_id','section_id'])
-            ->get();
+                ->where('subject_id', '=', $request->subject_id)
+                ->where('school_id', Auth::user()->school_id)
+                ->groupby(['class_id', 'section_id'])
+                ->get();
         }
         $promote_sections = [];
         foreach ($sectionIds as $sectionId) {
-            $promote_sections[] = SmSection::where('id',$sectionId->section_id)->first(['id','section_name']);
+            $promote_sections[] = SmSection::where('id', $sectionId->section_id)->first(['id', 'section_name']);
         }
 
         return response()->json([$promote_sections]);
@@ -2457,7 +2340,6 @@ class SmStudentAdmissionController extends Controller
     }
 
 
-
     public function SearchMultipleSection(Request $request)
     {
         $sectionIds = SmClassSection::where('class_id', '=', $request->id)->where('school_id', Auth::user()->school_id)->get();
@@ -2465,12 +2347,9 @@ class SmStudentAdmissionController extends Controller
     }
 
 
-
-
-
     public function ajaxSelectStudent(Request $request)
     {
-        $students = SmStudent::where('class_id', $request->class)->where('section_id', $request->section)->where('active_status', 1)->where('academic_id', getAcademicId())->where('school_id', Auth::user()->school_id)->get(['id','full_name','user_id']);
+        $students = SmStudent::where('class_id', $request->class)->where('section_id', $request->section)->where('active_status', 1)->where('academic_id', getAcademicId())->where('school_id', Auth::user()->school_id)->get(['id', 'full_name', 'user_id']);
 
         return response()->json([$students]);
     }
@@ -2478,17 +2357,15 @@ class SmStudentAdmissionController extends Controller
 
     public function studentCurrentSearch(Request $request)
     {
-         $input = $request->all();
+        $input = $request->all();
         $validator = Validator::make($input, [
             'current_session' => 'required',
             'current_class' => 'required',
-            'section' => 'required',           
+            'section' => 'required',
             'exam' => 'required',
-            'result' =>'required'
+            'result' => 'required'
         ]);
 
-
-    
 
         if ($validator->fails()) {
             if (ApiBaseMethod::checkUrl($request->fullUrl())) {
@@ -2518,85 +2395,84 @@ class SmStudentAdmissionController extends Controller
 
             //         return $students;
 
-                         $passStudents = SmGeneralSettings::make_merit_list($request->current_class, $request->section, $request->exam);
-                      
-                         $passesdStudentIds=[];
-                         if($passStudents !=0){
-                            foreach ($passStudents['allresult_data'] as $key => $value) {
-                                $d = SmStudent::where('id', $value->student_id)->where('academic_id', getAcademicId())->first();
-                                if ($d->count() != 0) {
-                                   $passesdStudentIds[] = $value->student_id; 
-                                }
-                                                          
-                            
-                                }
-                        }
+            $passStudents = SmGeneralSettings::make_merit_list($request->current_class, $request->section, $request->exam);
 
-           
+            $passesdStudentIds = [];
+            if ($passStudents != 0) {
+                foreach ($passStudents['allresult_data'] as $key => $value) {
+                    $d = SmStudent::where('id', $value->student_id)->where('academic_id', getAcademicId())->first();
+                    if ($d->count() != 0) {
+                        $passesdStudentIds[] = $value->student_id;
+                    }
+
+
+                }
+            }
+
 
             if ($request->result == 'P') {
                 $students = SmGeneralSettings::make_merit_list($request->current_class, $request->section, $request->exam);
-                  $students;
-                    if (@$students == 0) {
-                        Toastr::error('No result found', 'Failed');
-                        return redirect()->back();
-                        // return redirect()->back()->with('message-danger', 'Your result is not found!');
-                        //return redirect('student-promote');
-                    } else{
-                             $students['students'] = [];
-                             $passStudent=[];
-                            foreach ($students['allresult_data'] as $key => $value) {
-                                $d = SmStudent::where('id', $value->student_id)->where('academic_id', getAcademicId())->first();
+                $students;
+                if (@$students == 0) {
+                    Toastr::error('No result found', 'Failed');
+                    return redirect()->back();
+                    // return redirect()->back()->with('message-danger', 'Your result is not found!');
+                    //return redirect('student-promote');
+                } else {
+                    $students['students'] = [];
+                    $passStudent = [];
+                    foreach ($students['allresult_data'] as $key => $value) {
+                        $d = SmStudent::where('id', $value->student_id)->where('academic_id', getAcademicId())->first();
 
-                                if ($d->count() != 0) {
-                                    array_push($students['students'], $d);
-                                }
-                                
-                            }
+                        if ($d->count() != 0) {
+                            array_push($students['students'], $d);
+                        }
 
-                           
-                       }
-            } elseif($request->result == 'F') {
+                    }
+
+
+                }
+            } elseif ($request->result == 'F') {
                 $students = SmStudent::where('class_id', '=', $request->current_class)
-                                        ->where('session_id', '=', $request->current_session)
-                                        ->where('section_id', $request->section)
-                                        ->where('active_status', 1)
-                                        ->whereNotIn('id',$passesdStudentIds)
-                                        ->where('academic_id', getAcademicId())
-                                        ->where('school_id', Auth::user()->school_id)
-                                        ->get();
-                                        
-            }elseif($request->result=='Null'){
+                    ->where('session_id', '=', $request->current_session)
+                    ->where('section_id', $request->section)
+                    ->where('active_status', 1)
+                    ->whereNotIn('id', $passesdStudentIds)
+                    ->where('academic_id', getAcademicId())
+                    ->where('school_id', Auth::user()->school_id)
+                    ->get();
+
+            } elseif ($request->result == 'Null') {
 
                 $studentsIds = SmMarkStore::where('class_id', '=', $request->current_class)
-                                        ->where('section_id', $request->section)
-                                        ->where('academic_id', getAcademicId())
-                                        ->where('school_id', Auth::user()->school_id)
-                                        ->groupby(['class_id','section_id','student_id'])
-                                        ->get(['student_id','id']);
-              
-                    if (count($studentsIds)==0) {
-                        Toastr::error('Please register marks for all students.!', 'Failed');
-                        return redirect()->back();                        
-                    }
+                    ->where('section_id', $request->section)
+                    ->where('academic_id', getAcademicId())
+                    ->where('school_id', Auth::user()->school_id)
+                    ->groupby(['class_id', 'section_id', 'student_id'])
+                    ->get(['student_id', 'id']);
 
-                    $studentsIdss=[];
-                  
-                    foreach($studentsIds as $ids){
-                    $studentsIdss[]=$ids->student_id;
-                    }
+                if (count($studentsIds) == 0) {
+                    Toastr::error('Please register marks for all students.!', 'Failed');
+                    return redirect()->back();
+                }
+
+                $studentsIdss = [];
+
+                foreach ($studentsIds as $ids) {
+                    $studentsIdss[] = $ids->student_id;
+                }
 
 
                 $students = SmStudent::where('class_id', '=', $request->current_class)
-                                    ->where('session_id', '=', $request->current_session)
-                                    ->where('section_id', $request->section)
-                                    ->where('active_status', 1)
-                                    ->whereIn('id',$studentsIdss)
-                                    ->where('academic_id', getAcademicId())
-                                    ->where('school_id', Auth::user()->school_id)
-                                    ->get();
+                    ->where('session_id', '=', $request->current_session)
+                    ->where('section_id', $request->section)
+                    ->where('active_status', 1)
+                    ->whereIn('id', $studentsIdss)
+                    ->where('academic_id', getAcademicId())
+                    ->where('school_id', Auth::user()->school_id)
+                    ->get();
             }
-            
+
             $current_session = $request->current_session;
             $current_class = $request->current_class;
             $sessions = SmAcademicYear::where('active_status', 1)->where('school_id', Auth::user()->school_id)->get();
@@ -2622,14 +2498,15 @@ class SmStudentAdmissionController extends Controller
                 return ApiBaseMethod::sendResponse($data, null);
             }
 
-          
+
             $exams = SmExamType::where('active_status', 1)->where('academic_id', getAcademicId())->where('school_id', Auth::user()->school_id)->get();
-            return view('backEnd.studentInformation.student_promote', compact('exams', 'Upsessions', 'sessions', 'classes', 'students', 'current_session', 'current_class', 'Upclasses', 'Upcls', 'UpYear','passesdStudentIds'));
-        } catch (\Exception $e) {
+            return view('backEnd.studentInformation.student_promote', compact('exams', 'Upsessions', 'sessions', 'classes', 'students', 'current_session', 'current_class', 'Upclasses', 'Upcls', 'UpYear', 'passesdStudentIds'));
+        } catch (Exception $e) {
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
         }
     }
+
     public function studentCurrentSearchCustom(Request $request)
     {
         $input = $request->all();
@@ -2654,14 +2531,14 @@ class SmStudentAdmissionController extends Controller
             $current_session = $request->current_session;
             $current_class = $request->current_class;
             $sessions = SmAcademicYear::where('active_status', 1)
-                    ->where('id', getAcademicId())
-                    ->where('school_id', Auth::user()->school_id)
-                    ->get();
+                ->where('id', getAcademicId())
+                ->where('school_id', Auth::user()->school_id)
+                ->get();
 
             $classes = SmClass::where('active_status', 1)
-                    ->where('academic_id', getAcademicId())
-                    ->where('school_id', Auth::user()->school_id)
-                    ->get();
+                ->where('academic_id', getAcademicId())
+                ->where('school_id', Auth::user()->school_id)
+                ->get();
 
             $UpYear = SmAcademicYear::find($current_session);
             $Upsessions = SmAcademicYear::where('active_status', 1)->where('created_at', '>', $UpYear->created_at)->where('school_id', Auth::user()->school_id)->get();
@@ -2683,11 +2560,12 @@ class SmStudentAdmissionController extends Controller
             }
             $exams = SmExamType::where('active_status', 1)->where('academic_id', getAcademicId())->where('school_id', Auth::user()->school_id)->get();
             return view('backEnd.studentInformation.student_promote_custom', compact('exams', 'Upsessions', 'sessions', 'classes', 'students', 'current_session', 'current_class', 'Upclasses', 'Upcls', 'UpYear'));
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
         }
     }
+
     public function ajaxPromoteYear(Request $request)
     {
         // $year_name = SmAcademicYear::where('id', '=', $request->year)->select('year')->first();
@@ -2697,10 +2575,11 @@ class SmStudentAdmissionController extends Controller
         // return response()->json($year_name, 200);
         // return response()->json($request->year, 200);
     }
+
     public function studentPromoteStore(Request $request)
     {
 
-       $input = $request->all();
+        $input = $request->all();
         $validator = Validator::make($input, [
             'promote_session' => 'required',
             'promote_class' => 'required',
@@ -2722,8 +2601,8 @@ class SmStudentAdmissionController extends Controller
             $exams = SmExamType::where('active_status', 1)->where('academic_id', getAcademicId())->where('school_id', Auth::user()->school_id)->get();
             $Upsessions = SmAcademicYear::where('active_status', 1)->where('created_at', '>', $UpYear->created_at)->where('school_id', Auth::user()->school_id)->get();
             $sessions = SmAcademicYear::where('active_status', 1)
-            ->where('school_id', Auth::user()->school_id)
-            ->get();
+                ->where('school_id', Auth::user()->school_id)
+                ->get();
             $classes = SmClass::where('active_status', 1)->where('academic_id', getAcademicId())->where('school_id', Auth::user()->school_id)->get();
             $promot_year = SmAcademicYear::find($request->promote_session);
 
@@ -2758,7 +2637,7 @@ class SmStudentAdmissionController extends Controller
                         $new_section = $request->promote_section;
 
                         if ($request->result[$student_id] == 'P') {
-                            $merit_list = \App\SmTemporaryMeritlist::where(['student_id' => $student_id, 'class_id' => $request->current_class, 'section_id' => $student_details->section_id])->where('academic_id', getAcademicId())->first();
+                            $merit_list = SmTemporaryMeritlist::where(['student_id' => $student_id, 'class_id' => $request->current_class, 'section_id' => $student_details->section_id])->where('academic_id', getAcademicId())->first();
                             $roll = $merit_list->merit_order;
                         } else {
                             $roll = null;
@@ -2805,8 +2684,8 @@ class SmStudentAdmissionController extends Controller
                     }
                     Toastr::success('Operation successful', 'Success');
                     return redirect('student-promote');
-                } catch (\Exception $e) {
-                    
+                } catch (Exception $e) {
+
                     DB::rollback();
                     $students = SmStudent::where('class_id', '=', $request->current_class)->where('session_id', '=', $request->current_session)->where('academic_id', getAcademicId())->where('school_id', Auth::user()->school_id)->get();
 
@@ -2825,14 +2704,15 @@ class SmStudentAdmissionController extends Controller
                     return view('backEnd.studentInformation.student_promote', compact('exams', 'Upsessions', 'sessions', 'classes', 'students', 'current_session', 'current_class'));
                 }
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
         }
     }
+
     public function studentPromoteCustomStore(Request $request)
     {
-       
+
         $input = $request->all();
         $validator = Validator::make($input, [
             'promote_session' => 'required',
@@ -2854,9 +2734,9 @@ class SmStudentAdmissionController extends Controller
             $UpYear = SmAcademicYear::find($current_session);
 
             $exams = SmExamType::where('active_status', 1)
-                    ->where('id', getAcademicId())
-                    ->where('school_id', Auth::user()->school_id)
-                    ->get();
+                ->where('id', getAcademicId())
+                ->where('school_id', Auth::user()->school_id)
+                ->get();
             $Upsessions = SmAcademicYear::where('active_status', 1)->where('created_at', '>', $UpYear->created_at)->where('school_id', Auth::user()->school_id)->get();
             $sessions = SmAcademicYear::where('active_status', 1)->where('id', getAcademicId())->where('school_id', Auth::user()->school_id)->get();
             $classes = SmClass::where('active_status', 1)->where('academic_id', getAcademicId())->where('school_id', Auth::user()->school_id)->get();
@@ -2925,18 +2805,17 @@ class SmStudentAdmissionController extends Controller
                     }
 
 
-
                     DB::commit();
-/*
-                    $students = SmStudent::where('class_id', '=', $request->promote_class)->where('session_id', '=', $request->promote_session)
-                        ->where('academic_id', getAcademicId())->where('school_id', Auth::user()->school_id)->get();*/
+                    /*
+                                        $students = SmStudent::where('class_id', '=', $request->promote_class)->where('session_id', '=', $request->promote_session)
+                                            ->where('academic_id', getAcademicId())->where('school_id', Auth::user()->school_id)->get();*/
 
                     if (ApiBaseMethod::checkUrl($request->fullUrl())) {
                         return ApiBaseMethod::sendResponse(null, 'Student has been promoted successfully');
                     }
                     Toastr::success('Operation successful', 'Success');
                     return redirect('student-promote');
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     DB::rollback();
                     $students = SmStudent::where('class_id', '=', $request->current_class)->where('session_id', '=', $request->current_session)
                         ->where('academic_id', getAcademicId())->where('school_id', Auth::user()->school_id)->get();
@@ -2956,11 +2835,12 @@ class SmStudentAdmissionController extends Controller
                     return view('backEnd.studentInformation.student_promote_custom', compact('exams', 'Upsessions', 'sessions', 'classes', 'students', 'current_session', 'current_class'));
                 }
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Toastr::error($e->getMessage());
             return redirect()->back();
         }
     }
+
     //studentReport modified by jmrashed
     public function studentReport(Request $request)
     {
@@ -2976,7 +2856,7 @@ class SmStudentAdmissionController extends Controller
                 return ApiBaseMethod::sendResponse($data, null);
             }
             return view('backEnd.studentInformation.student_report', compact('classes', 'types', 'genders'));
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
         }
@@ -3033,7 +2913,7 @@ class SmStudentAdmissionController extends Controller
             }
             $clas = SmClass::find($request->class);
             return view('backEnd.studentInformation.student_report', compact('students', 'classes', 'types', 'genders', 'class_id', 'type_id', 'gender_id', 'clas'));
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
         }
@@ -3043,19 +2923,19 @@ class SmStudentAdmissionController extends Controller
     {
         try {
             if (teacherAccess()) {
-                $teacher_info=SmStaff::where('user_id',Auth::user()->id)->first();
-               $classes= SmAssignSubject::where('teacher_id',$teacher_info->id)->join('sm_classes','sm_classes.id','sm_assign_subjects.class_id')
-               ->where('sm_assign_subjects.academic_id', getAcademicId())
-               ->where('sm_assign_subjects.active_status', 1)
-               ->where('sm_assign_subjects.school_id',Auth::user()->school_id)
-               ->select('sm_classes.id','class_name')
-                ->groupBy('sm_classes.id')
-               ->get();
+                $teacher_info = SmStaff::where('user_id', Auth::user()->id)->first();
+                $classes = SmAssignSubject::where('teacher_id', $teacher_info->id)->join('sm_classes', 'sm_classes.id', 'sm_assign_subjects.class_id')
+                    ->where('sm_assign_subjects.academic_id', getAcademicId())
+                    ->where('sm_assign_subjects.active_status', 1)
+                    ->where('sm_assign_subjects.school_id', Auth::user()->school_id)
+                    ->select('sm_classes.id', 'class_name')
+                    ->groupBy('sm_classes.id')
+                    ->get();
             } else {
                 $classes = SmClass::where('active_status', 1)
-                            ->where('academic_id', getAcademicId())
-                            ->where('school_id',Auth::user()->school_id)
-                            ->get();
+                    ->where('academic_id', getAcademicId())
+                    ->where('school_id', Auth::user()->school_id)
+                    ->get();
             }
             $types = SmStudentCategory::where('school_id', Auth::user()->school_id)->get();
             $genders = SmBaseSetup::where('active_status', '=', '1')->where('base_group_id', '=', '1')->get();
@@ -3068,7 +2948,7 @@ class SmStudentAdmissionController extends Controller
                 return ApiBaseMethod::sendResponse($data, null);
             }
             return view('backEnd.studentInformation.student_attendance_report', compact('classes', 'types', 'genders'));
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
         }
@@ -3103,19 +2983,19 @@ class SmStudentAdmissionController extends Controller
             $sec = SmSection::findOrFail($request->section);
             $days = cal_days_in_month(CAL_GREGORIAN, $request->month, $request->year);
             if (teacherAccess()) {
-                $teacher_info=SmStaff::where('user_id',Auth::user()->id)->first();
-               $classes= SmAssignSubject::where('teacher_id',$teacher_info->id)->join('sm_classes','sm_classes.id','sm_assign_subjects.class_id')
-               ->where('sm_assign_subjects.academic_id', getAcademicId())
-               ->where('sm_assign_subjects.active_status', 1)
-               ->where('sm_assign_subjects.school_id',Auth::user()->school_id)
-               ->select('sm_classes.id','class_name')
-                ->groupBy('sm_classes.id')
-               ->get();
+                $teacher_info = SmStaff::where('user_id', Auth::user()->id)->first();
+                $classes = SmAssignSubject::where('teacher_id', $teacher_info->id)->join('sm_classes', 'sm_classes.id', 'sm_assign_subjects.class_id')
+                    ->where('sm_assign_subjects.academic_id', getAcademicId())
+                    ->where('sm_assign_subjects.active_status', 1)
+                    ->where('sm_assign_subjects.school_id', Auth::user()->school_id)
+                    ->select('sm_classes.id', 'class_name')
+                    ->groupBy('sm_classes.id')
+                    ->get();
             } else {
                 $classes = SmClass::where('active_status', 1)
-                ->where('academic_id', getAcademicId())
-                ->where('school_id',Auth::user()->school_id)
-                ->get();
+                    ->where('academic_id', getAcademicId())
+                    ->where('school_id', Auth::user()->school_id)
+                    ->get();
             }
             $students = SmStudent::where('class_id', $request->class)->where('section_id', $request->section)->where('active_status', 1)->where('academic_id', getAcademicId())->where('school_id', Auth::user()->school_id)->get();
 
@@ -3140,9 +3020,9 @@ class SmStudentAdmissionController extends Controller
                 return ApiBaseMethod::sendResponse($data, null);
             }
 
-            return view('backEnd.studentInformation.student_attendance_report', compact('classes','attendances','students', 'days', 'year', 'month', 'current_day',
+            return view('backEnd.studentInformation.student_attendance_report', compact('classes', 'attendances', 'students', 'days', 'year', 'month', 'current_day',
                 'class_id', 'section_id', 'clas', 'sec'));
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
         }
@@ -3157,18 +3037,18 @@ class SmStudentAdmissionController extends Controller
             $days = cal_days_in_month(CAL_GREGORIAN, $month, $year);
 
             $students = DB::table('sm_students')
-            ->where('class_id', $class_id)
-            ->where('section_id', $section_id)
-            ->where('active_status', 1)
-            ->where('school_id', Auth::user()->school_id)
-            ->get();
+                ->where('class_id', $class_id)
+                ->where('section_id', $section_id)
+                ->where('active_status', 1)
+                ->where('school_id', Auth::user()->school_id)
+                ->get();
 
             $attendances = [];
             foreach ($students as $student) {
                 $attendance = SmStudentAttendance::where('student_id', $student->id)
-                ->where('attendance_date', 'like', $year . '-' . $month . '%')
-                ->where('school_id', Auth::user()->school_id)
-                ->get();
+                    ->where('attendance_date', 'like', $year . '-' . $month . '%')
+                    ->where('school_id', Auth::user()->school_id)
+                    ->get();
 
                 if ($attendance) {
                     $attendances[] = $attendance;
@@ -3193,7 +3073,7 @@ class SmStudentAdmissionController extends Controller
             $class = SmClass::find($class_id);
             $section = SmSection::find($section_id);
             return view('backEnd.studentInformation.student_attendance_print', compact('class', 'section', 'attendances', 'days', 'year', 'month', 'current_day', 'class_id', 'section_id'));
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
         }
@@ -3203,11 +3083,11 @@ class SmStudentAdmissionController extends Controller
     {
         try {
             // start check student limitation for subscription
-            if(moduleStatusCheck('SaasSubscription')== TRUE){
+            if (moduleStatusCheck('SaasSubscription') == TRUE) {
 
                 $active_student = SmStudent::where('school_id', Auth::user()->school_id)->where('active_status', 1)->count();
 
-                if(\Modules\SaasSubscription\Entities\SmPackagePlan::student_limit() <= $active_student){
+                if (SmPackagePlan::student_limit() <= $active_student) {
 
                     Toastr::error('Your student limit has been crossed.', 'Failed');
                     return redirect()->back();
@@ -3222,7 +3102,7 @@ class SmStudentAdmissionController extends Controller
             $religions = SmBaseSetup::where('base_group_id', 2)->get();
             $sessions = SmAcademicYear::where('school_id', Auth::user()->school_id)->get();
             return view('backEnd.studentInformation.import_student', compact('classes', 'genders', 'blood_groups', 'religions', 'sessions'));
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
         }
@@ -3239,7 +3119,7 @@ class SmStudentAdmissionController extends Controller
                     $sheet->fromArray($studentsArray);
                 });
             })->download('xlsx');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
         }
@@ -3248,7 +3128,7 @@ class SmStudentAdmissionController extends Controller
 
     public function studentBulkStore(Request $request)
     {
-        
+
         $request->validate(
             [
                 'session' => 'required',
@@ -3260,7 +3140,6 @@ class SmStudentAdmissionController extends Controller
                 'session.required' => 'Academic year field is required.'
             ]
         );
-
 
 
         $file_type = strtolower($request->file->getClientOriginalExtension());
@@ -3294,11 +3173,11 @@ class SmStudentAdmissionController extends Controller
 
                 if (!empty($data)) {
                     foreach ($data as $key => $value) {
-                        if(moduleStatusCheck('SaasSubscription')== TRUE){
+                        if (moduleStatusCheck('SaasSubscription') == TRUE) {
 
                             $active_student = SmStudent::where('school_id', Auth::user()->school_id)->where('active_status', 1)->count();
 
-                            if(\Modules\SaasSubscription\Entities\SmPackagePlan::student_limit() <= $active_student){
+                            if (SmPackagePlan::student_limit() <= $active_student) {
 
                                 DB::commit();
                                 StudentBulkTemporary::where('user_id', Auth::user()->id)->delete();
@@ -3309,7 +3188,7 @@ class SmStudentAdmissionController extends Controller
                         }
 
 
-                        $ad_check = SmStudent::where('admission_no', (int) $value->admission_number)->where('school_id', Auth::user()->school_id)->get();
+                        $ad_check = SmStudent::where('admission_no', (int)$value->admission_number)->where('school_id', Auth::user()->school_id)->get();
                         //  return $ad_check;
 
                         if ($ad_check->count() > 0) {
@@ -3320,7 +3199,7 @@ class SmStudentAdmissionController extends Controller
                         }
 
                         if ($value->email != "") {
-                            $chk =  DB::table('sm_students')->where('email', $value->email)->where('school_id', Auth::user()->school_id)->count();
+                            $chk = DB::table('sm_students')->where('email', $value->email)->where('school_id', Auth::user()->school_id)->count();
                             if ($chk >= 1) {
                                 DB::rollback();
                                 StudentBulkTemporary::where('user_id', Auth::user()->id)->delete();
@@ -3330,7 +3209,7 @@ class SmStudentAdmissionController extends Controller
                         }
 
                         if ($value->guardian_email != "") {
-                            $chk =  DB::table('sm_parents')->where('guardians_email', $value->guardian_email)->where('school_id', Auth::user()->school_id)->count();
+                            $chk = DB::table('sm_parents')->where('guardians_email', $value->guardian_email)->where('school_id', Auth::user()->school_id)->count();
                             if ($chk >= 1) {
                                 DB::rollback();
                                 StudentBulkTemporary::where('user_id', Auth::user()->id)->delete();
@@ -3341,11 +3220,11 @@ class SmStudentAdmissionController extends Controller
 
 
                         try {
-                            
-                            if($value->admission_number==null){
+
+                            if ($value->admission_number == null) {
                                 continue;
-                            }else{
-                                
+                            } else {
+
                             }
                             $academic_year = SmAcademicYear::find($request->session);
 
@@ -3356,7 +3235,7 @@ class SmStudentAdmissionController extends Controller
 
                             if (empty($value->email)) {
                                 $user_stu->username = $value->admission_number;
-                            }else{
+                            } else {
                                 $user_stu->username = $value->email;
                             }
 
@@ -3381,7 +3260,7 @@ class SmStudentAdmissionController extends Controller
                                 if (empty($value->guardian_email)) {
                                     $data_parent['email'] = 'par_' . $value->admission_number;
 
-                                    $user_parent->username  = 'par_' . $value->admission_number;
+                                    $user_parent->username = 'par_' . $value->admission_number;
                                 } else {
 
                                     $data_parent['email'] = $value->guardian_email;
@@ -3492,35 +3371,35 @@ class SmStudentAdmissionController extends Controller
                                         $user_info = [];
 
                                         if ($value->email != "") {
-                                            $user_info[] =  array('email' => $value->email, 'username' => $value->email);
+                                            $user_info[] = array('email' => $value->email, 'username' => $value->email);
                                         }
 
 
                                         if ($value->guardian_email != "") {
-                                            $user_info[] =  array('email' =>  $value->guardian_email, 'username' => $data_parent['email']);
+                                            $user_info[] = array('email' => $value->guardian_email, 'username' => $data_parent['email']);
                                         }
-                                    } catch (\Illuminate\Database\QueryException $e) {
+                                    } catch (QueryException $e) {
 
                                         DB::rollback();
                                         Toastr::error('Operation Failed', 'Failed');
                                         return redirect()->back();
-                                    } catch (\Exception $e) {
+                                    } catch (Exception $e) {
 
                                         DB::rollback();
                                         Toastr::error('Operation Failed', 'Failed');
                                         return redirect()->back();
                                     }
-                                } catch (\Exception $e) {
+                                } catch (Exception $e) {
                                     DB::rollback();
                                     Toastr::error('Operation Failed', 'Failed');
                                     return redirect()->back();
                                 }
-                            } catch (\Exception $e) {
+                            } catch (Exception $e) {
                                 DB::rollback();
                                 Toastr::error('Operation Failed', 'Failed');
                                 return redirect()->back();
                             }
-                        } catch (\Exception $e) {
+                        } catch (Exception $e) {
                             DB::rollback();
                             Toastr::error('Operation Failed', 'Failed');
                             return redirect()->back();
@@ -3533,7 +3412,7 @@ class SmStudentAdmissionController extends Controller
                     Toastr::success('Operation successful', 'Success');
                     return redirect()->back();
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Toastr::error('Operation Failed', 'Failed');
                 return redirect()->back();
             }
@@ -3554,7 +3433,7 @@ class SmStudentAdmissionController extends Controller
                 return ApiBaseMethod::sendResponse($data, null);
             }
             return view('backEnd.studentInformation.guardian_report', compact('classes'));
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
         }
@@ -3598,7 +3477,7 @@ class SmStudentAdmissionController extends Controller
             }
             $clas = SmClass::find($request->class);
             return view('backEnd.studentInformation.guardian_report', compact('students', 'classes', 'class_id', 'clas'));
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
         }
@@ -3617,7 +3496,7 @@ class SmStudentAdmissionController extends Controller
                 return ApiBaseMethod::sendResponse($data, null);
             }
             return view('backEnd.studentInformation.login_info', compact('classes'));
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
         }
@@ -3660,7 +3539,7 @@ class SmStudentAdmissionController extends Controller
             }
             $clas = SmClass::find($request->class);
             return view('backEnd.studentInformation.login_info', compact('students', 'classes', 'class_id', 'clas'));
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
         }
@@ -3681,7 +3560,7 @@ class SmStudentAdmissionController extends Controller
                 return ApiBaseMethod::sendResponse($data, null);
             }
             return view('backEnd.studentInformation.disabled_student', compact('students', 'classes'));
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
         }
@@ -3739,12 +3618,11 @@ class SmStudentAdmissionController extends Controller
             }
 
             return view('backEnd.studentInformation.disabled_student', compact('students', 'classes', 'class_id', 'section_id', 'name', 'roll_no'));
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
         }
     }
-
 
 
     public function disabledStudentDelete1(Request $request)
@@ -3793,7 +3671,6 @@ class SmStudentAdmissionController extends Controller
             }
 
 
-
             $student_user = User::find($student_detail->user_id);
             $student_user->delete();
 
@@ -3811,28 +3688,29 @@ class SmStudentAdmissionController extends Controller
 
             Toastr::success('Operation successful', 'Success');
             return redirect()->back();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollback();
 
             if (ApiBaseMethod::checkUrl($request->fullUrl())) {
                 return ApiBaseMethod::sendError('Something went wrong, please try again');
             }
-            
+
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
         }
     }
+
     public function disabledStudentDelete(Request $request)
     {
         try {
-            $tables = \App\tableList::getTableList('student_id', $request->id);
+            $tables = tableList::getTableList('student_id', $request->id);
             try {
                 $single_data = 0;
 
-                 if (checkAdmin()) {
+                if (checkAdmin()) {
                     $student_detail = SmStudent::find($request->id);
-                }else{
-                    $student_detail = SmStudent::where('id',$request->id)->where('school_id',Auth::user()->school_id)->first();
+                } else {
+                    $student_detail = SmStudent::where('id', $request->id)->where('school_id', Auth::user()->school_id)->first();
                 }
                 $parent_user = @$student_detail->parents->user_id;
                 $siblings = SmStudent::where('parent_id', $student_detail->parent_id)->where('school_id', Auth::user()->school_id)->get();
@@ -3875,18 +3753,18 @@ class SmStudentAdmissionController extends Controller
                     $parent_user = User::find($parent_user);
                     $parent_user->delete();
                 }
-                $table_list=\App\tableList::ONLY_TABLE_LIST('student_id');
+                $table_list = tableList::ONLY_TABLE_LIST('student_id');
                 foreach ($table_list as $key => $table) {
-                    $table_data=DB::table($table)->where('student_id',$request->id)->get();
+                    $table_data = DB::table($table)->where('student_id', $request->id)->get();
                     foreach ($table_data as $key => $data) {
-                            $single_data==DB::table($table)->where('id',$data->id)->delete();
+                        $single_data == DB::table($table)->where('id', $data->id)->delete();
                     }
                 }
 
                 foreach ($table_list as $key => $table) {
-                $table_data=DB::table($table)->where('student_id',$request->id)->get();
+                    $table_data = DB::table($table)->where('student_id', $request->id)->get();
                     foreach ($table_data as $key => $data) {
-                    $single_data==DB::table($table)->where('id',$data->id)->delete();
+                        $single_data == DB::table($table)->where('id', $data->id)->delete();
                     }
                 }
 
@@ -3898,17 +3776,17 @@ class SmStudentAdmissionController extends Controller
 
                 Toastr::success('Operation successful', 'Success');
                 return redirect()->back();
-            } catch (\Illuminate\Database\QueryException $e) {
+            } catch (QueryException $e) {
                 DB::rollback();
                 $msg = 'This data already used in  : ' . $tables . ' Please remove those data first';
                 Toastr::error($msg, 'Failed');
                 return redirect()->back();
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 DB::rollback();
                 Toastr::error('Operation Failed', 'Failed');
                 return redirect()->back();
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollback();
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
@@ -3919,9 +3797,9 @@ class SmStudentAdmissionController extends Controller
     public function enableStudent(Request $request)
     {
         try {
-            if(moduleStatusCheck('SaasSubscription')== TRUE){
+            if (moduleStatusCheck('SaasSubscription') == TRUE) {
                 $active_student = SmStudent::where('school_id', Auth::user()->school_id)->where('active_status', 1)->count();
-                if(\Modules\SaasSubscription\Entities\SmPackagePlan::student_limit() <= $active_student){
+                if (SmPackagePlan::student_limit() <= $active_student) {
                     Toastr::error('Your student limit has been crossed.', 'Failed');
                     return redirect()->back();
                 }
@@ -3929,10 +3807,10 @@ class SmStudentAdmissionController extends Controller
 
             DB::beginTransaction();
             // $student_detail = SmStudent::find($request->id);
-             if (checkAdmin()) {
+            if (checkAdmin()) {
                 $student_detail = SmStudent::find($request->id);
-            }else{
-                $student_detail = SmStudent::where('id',$request->id)->where('school_id',Auth::user()->school_id)->first();
+            } else {
+                $student_detail = SmStudent::where('id', $request->id)->where('school_id', Auth::user()->school_id)->first();
             }
 
             $student_detail->active_status = 1;
@@ -3961,7 +3839,7 @@ class SmStudentAdmissionController extends Controller
 
             Toastr::success('Operation successful', 'Success');
             return redirect()->back();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollback();
             if (ApiBaseMethod::checkUrl($request->fullUrl())) {
                 return ApiBaseMethod::sendError('Something went wrong, please try again');
@@ -3976,21 +3854,21 @@ class SmStudentAdmissionController extends Controller
     {
         try {
             $classes = SmClass::where('active_status', 1)
-                    ->where('academic_id', getAcademicId())
-                    ->where('school_id', Auth::user()->school_id)
-                    ->get();
+                ->where('academic_id', getAcademicId())
+                ->where('school_id', Auth::user()->school_id)
+                ->get();
 
             $students = SmStudent::where('active_status', 1)
-                    ->where('academic_id', getAcademicId())
-                    ->where('school_id', Auth::user()->school_id)
-                    ->get();
+                ->where('academic_id', getAcademicId())
+                ->where('school_id', Auth::user()->school_id)
+                ->get();
 
             $years = SmStudent::select('admission_date')->where('active_status', 1)
                 ->where('academic_id', getAcademicId())->get()
                 ->groupBy(function ($val) {
-                return Carbon::parse($val->admission_date)->format('Y');
+                    return Carbon::parse($val->admission_date)->format('Y');
                 });
-                
+
             if (ApiBaseMethod::checkUrl($request->fullUrl())) {
                 $data = [];
                 $data['classes'] = $classes->toArray();
@@ -4000,7 +3878,7 @@ class SmStudentAdmissionController extends Controller
             }
 
             return view('backEnd.studentInformation.student_history', compact('classes', 'years'));
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
         }
@@ -4028,7 +3906,7 @@ class SmStudentAdmissionController extends Controller
             $students->where('class_id', $request->class);
             $students->where('active_status', 1);
             if ($request->admission_year != "") {
-                $students->where('admission_date', 'like',  $request->admission_year . '%');
+                $students->where('admission_date', 'like', $request->admission_year . '%');
             }
 
             $students = $students->where('academic_id', getAcademicId())->where('school_id', Auth::user()->school_id)->get();
@@ -4053,7 +3931,7 @@ class SmStudentAdmissionController extends Controller
             }
             $clas = SmClass::find($request->class);
             return view('backEnd.studentInformation.student_history', compact('students', 'classes', 'years', 'class_id', 'year', 'clas'));
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
         }
@@ -4074,17 +3952,18 @@ class SmStudentAdmissionController extends Controller
             $exam_types = SmExamType::where('school_id', Auth::user()->school_id)->get();
 
             $classes = SmClass::where('active_status', 1)
-                    ->where('academic_id', getAcademicId())
-                    ->where('school_id', Auth::user()->school_id)
-                    ->get();
+                ->where('academic_id', getAcademicId())
+                ->where('school_id', Auth::user()->school_id)
+                ->get();
             // return $classes;
             // return getAcademicId();
             return view('backEnd.examination.previous_record', compact('classes', 'exam_types', 'academic_years'));
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
         }
     }
+
     function previousRecordSearch(Request $request)
     {
         $input = $request->all();
@@ -4117,7 +3996,7 @@ class SmStudentAdmissionController extends Controller
             $clas = SmClass::find($request->promote_class);
             $sec = SmSection::find($request->promote_section);
             return view('backEnd.examination.previous_record', compact('classes', 'exam_types', 'academic_years', 'students', 'year', 'clas', 'sec'));
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
         }
@@ -4125,9 +4004,9 @@ class SmStudentAdmissionController extends Controller
 
     public function allStudentExport()
     {
-        try{
+        try {
             return view('backEnd.studentInformation.allStudentExport');
-        }catch(\Exception $e) {
+        } catch (Exception $e) {
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
         }
@@ -4135,9 +4014,9 @@ class SmStudentAdmissionController extends Controller
 
     public function allStudentExportExcel()
     {
-        try{
+        try {
             return Excel::download(new AllStudentExport, 'all_student_export.csv');
-        }catch(\Exception $e) {
+        } catch (Exception $e) {
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
         }
@@ -4145,19 +4024,19 @@ class SmStudentAdmissionController extends Controller
 
     public function allStudentExportPdf()
     {
-        try{
-            $academiYear= SmAcademicYear::find(getAcademicId());
-            $students = SmStudent::where('school_id',Auth::user()->school_id)
-                    ->where('academic_id',getAcademicId())
-                    ->orderBy('class_id','asc')
-                    ->get();
+        try {
+            $academiYear = SmAcademicYear::find(getAcademicId());
+            $students = SmStudent::where('school_id', Auth::user()->school_id)
+                ->where('academic_id', getAcademicId())
+                ->orderBy('class_id', 'asc')
+                ->get();
 
-        return view('backEnd.studentInformation.allStudentExportPdfPrint', compact('academiYear','students'));
+            return view('backEnd.studentInformation.allStudentExportPdfPrint', compact('academiYear', 'students'));
 
-        // $pdf = PDF::loadView('backEnd.studentInformation.allStudentExportPdfPrint',
-        //         ['students' => $students])->setPaper('A4', 'landscape');
-        //     return $pdf->stream('all_student.pdf');
-        }catch(\Exception $e) {
+            // $pdf = PDF::loadView('backEnd.studentInformation.allStudentExportPdfPrint',
+            //         ['students' => $students])->setPaper('A4', 'landscape');
+            //     return $pdf->stream('all_student.pdf');
+        } catch (Exception $e) {
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
         }

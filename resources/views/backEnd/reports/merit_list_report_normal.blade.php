@@ -183,17 +183,6 @@
     </section>
 
     @if(isset($allresult_data))
-        @php 
-            $generalSetting= App\SmGeneralSettings::find(1); 
-            if(!empty($generalSetting)){
-                $school_name =$generalSetting->school_name;
-                $site_title =$generalSetting->site_title;
-                $school_code =$generalSetting->school_code;
-                $address =$generalSetting->address;
-                $phone =$generalSetting->phone; 
-                $email =$generalSetting->email;
-            } 
-        @endphp
         <section class="student-details">
             <div class="container-fluid p-0">
                 <div class="row mt-40">
@@ -216,12 +205,12 @@
                                             <div class="card-header">
                                                 <div class="d-flex">
                                                     <div class="col-lg-2">
-                                                        <img class="logo-img" src="{{ generalSetting()->logo }}" alt="">
+                                                        <img class="logo-img" src="{{ generalSetting()->logo }}" alt="{{generalSetting()->school_name}}">
                                                     </div>
                                                     <div class="col-lg-6 ml-30">
                                                         <h3 class="text-white"> {{isset(generalSetting()->school_name)?generalSetting()->school_name:'Infix School Management ERP'}} </h3> 
                                                         <p class="text-white mb-0"> {{isset(generalSetting()->address)?generalSetting()->address:'Infix School Address'}} </p>
-                                                        <p class="text-white mb-0">@lang('lang.email'):  {{isset($email)?$email:'admin@demo.com'}} ,   @lang('lang.phone'):  {{isset(generalSetting()->phone)?generalSetting()->phone:'admin@demo.com'}} </p> 
+                                                        <p class="text-white mb-0">@lang('lang.email'):  {{isset(generalSetting()->email)? generalSetting()->email:'admin@demo.com'}} ,   @lang('lang.phone'):  {{isset(generalSetting()->phone)?generalSetting()->phone:'admin@demo.com'}} </p> 
                                                     </div>
                                                     <div class="offset-2"></div>
                                                 </div>

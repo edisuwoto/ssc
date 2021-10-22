@@ -77,23 +77,21 @@
 
     .single-report-admit table tr td {
         border-color: #dee2e6 !important;
-        }
+    }
 
-.custom_table tbody tr th{
-    border-color: #dee2e6 !important;
-}
-.spacing tr th{
-    padding: 3px 10px !important;
-    vertical-align: middle;
-    border: 1px solid #dee2e6 !important;
-}
+    .custom_table tbody tr th{
+        border-color: #dee2e6 !important;
+    }
+    .spacing tr th{
+        padding: 3px 10px !important;
+        vertical-align: middle;
+        border: 1px solid #dee2e6 !important;
+    }
 
-.spacing tr td{
-    padding: 0px 40px !important;
-    vertical-align: middle;
-}
-
-
+    .spacing tr td{
+        padding: 0px 40px !important;
+        vertical-align: middle;
+    }
     </style>
     <section class="sms-breadcrumb mb-40 white-box">
         <div class="container-fluid">
@@ -537,6 +535,15 @@
                 , #d8e6ff 0%, #ecd0f4 100%);
             }
 
+        .profile_100{
+            width: 100px;
+            height: 100px;
+            background-size: cover;
+            background-position: center center;
+            border-radius: 5px;
+            background-repeat: no-repeat;
+        }
+
         </style>
         <section class="student-details">
             <div class="container-fluid p-0">
@@ -570,15 +577,14 @@
                                                         <h3 class="text-white"> {{isset(generalSetting()->school_name)?generalSetting()->school_name:'Infix School Management ERP'}} </h3>
                                                         <p class="text-white mb-0"> {{isset(generalSetting()->address)?generalSetting()->address:'Infix School Address'}} </p>
                                                         <p class="text-white mb-0">
-                                                            @lang('lang.email'): {{isset($email)?$email:'admin@demo.com'}} ,
-                                                            @lang('lang.phone'): {{isset(generalSetting()->phone)?generalSetting()->phone:'admin@demo.com'}} </p>
+                                                            @lang('lang.email'): <span class="text-lowercase">{{isset(generalSetting()->email)?generalSetting()->email:'admin@demo.com'}}</span>,
+                                                            @lang('lang.phone'): {{isset(generalSetting()->phone)?generalSetting()->phone:'+8801841412141'}} </p>
                                                     </div>
                                                     <div class="offset-2">
                                                     </div>
                                                 </div>
-                                                <div>
-                                                    <img class="report-admit-img"  src="{{ file_exists(@$studentDetails->student_photo) ? asset($studentDetails->student_photo) : asset('public/uploads/staff/demo/staff.jpg') }}" width="100" height="100" alt="{{asset($studentDetails->student_photo)}}"> 
-                                                </div> 
+                                                <div class="report-admit-img profile_100" style="background-image: url({{ file_exists(@$studentDetails->student_photo) ? asset($studentDetails->student_photo) : asset('public/uploads/staff/demo/staff.jpg') }})"></div>
+                                    
                                             </div>
                                             {{--Start  Result Table --}}
                                             <div class="student_marks_table">

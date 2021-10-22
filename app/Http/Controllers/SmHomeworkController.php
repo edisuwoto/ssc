@@ -239,6 +239,7 @@ class SmHomeworkController extends Controller
                         $notification->date = date('Y-m-d');
                         $notification->user_id = $parent->user_id;
                         $notification->url = "homework-list";
+                        $notification->school_id = Auth::user()->school_id;
                         $notification->academic_id = getAcademicId();
                         $notification->save();
 

@@ -637,7 +637,6 @@ class TeacherApiController extends Controller
                 'upload_date' => "required",
                 'description' => "required",
                 'attach_file' => "sometimes|nullable|mimes:pdf,doc,docx,jpg,jpeg,png,txt",
-
             ]);
         }
         //as assignment, st study material, sy sullabus, ot others download
@@ -648,20 +647,19 @@ class TeacherApiController extends Controller
             }
         }
         if (empty($request->input('available_for'))) {
-
             if (ApiBaseMethod::checkUrl($request->fullUrl())) {
                 return ApiBaseMethod::sendError('Validation Error.', 'Content Receiver not selected');
             }
         }
         try {
             $fileName = "";
-            if ($request->file('attach_file') != "") {
+            if($request->file('attach_file') != ""){
                 $maxFileSize = SmGeneralSettings::first('file_size')->file_size;
                 $file = $request->file('attach_file');
                 $fileSize =  filesize($file);
                 $fileSizeKb = ($fileSize / 1000000);
                 if($fileSizeKb >= $maxFileSize){
-                    Toastr::error( 'Max upload file size '. $maxFileSize .' Mb is set in system', 'Failed');
+                    Toastr::error('Max upload file size '. $maxFileSize .' Mb is set in system', 'Failed');
                     return redirect()->back();
                 }
                 $file = $request->file('attach_file');
@@ -675,13 +673,12 @@ class TeacherApiController extends Controller
             $uploadContents->content_type = $request->input('content_type');
 
 
-
-            if ($request->input('available_for') == 'admin') {
+            if($request->input('available_for') == 'admin'){
                 $uploadContents->available_for_admin = 1;
-            } elseif ($request->input('available_for') == 'student') {
-                if (!empty($request->input('all_classes'))) {
+            }elseif($request->input('available_for') == 'student'){
+                if(!empty($request->input('all_classes'))){
                     $uploadContents->available_for_all_classes = 1;
-                } else {
+                }else{
                     $uploadContents->class = $request->input('class');
                     $uploadContents->section = $request->input('section');
                 }
@@ -705,12 +702,15 @@ class TeacherApiController extends Controller
                 $purpose = 'Others Download';
             }
 
-
-            // foreach ($request->input('available_for') as $value) {
             if ($request->input('available_for') == 'admin') {
-                $roles = InfixRole::where('id', '!=', 1)->where('id', '!=', 2)->where('id', '!=', 3)->where('id', '!=', 9)->where(function ($q) {
-                $q->where('school_id', Auth::user()->school_id)->orWhere('type', 'System');
-            })->get();
+                $roles = InfixRole::where('id', '!=', 1)
+                        ->where('id', '!=', 2)
+                        ->where('id', '!=', 3)
+                        ->where('id', '!=', 9)
+                        ->where(function ($q) {
+                        $q->where('school_id', Auth::user()->school_id)
+                        ->orWhere('type', 'System');})
+                        ->get();
 
                 foreach ($roles as $role) {
                     $staffs = SmStaff::where('role_id', $role->id)->get();
@@ -720,6 +720,7 @@ class TeacherApiController extends Controller
                         $notification->role_id = $role->id;
                         $notification->date = date('Y-m-d');
                         $notification->message = $purpose . ' updated';
+                        $notification->school_id = Auth::user()->school_id;
                         $notification->academic_id = getAcademicId();
                         $notification->save();
                     }
@@ -734,6 +735,7 @@ class TeacherApiController extends Controller
                         $notification->role_id = 2;
                         $notification->date = date('Y-m-d');
                         $notification->message = $purpose . ' updated';
+                        $notification->school_id = Auth::user()->school_id;
                         $notification->academic_id = getAcademicId();
                         $notification->save();
                     }
@@ -745,17 +747,15 @@ class TeacherApiController extends Controller
                         $notification->role_id = 2;
                         $notification->date = date('Y-m-d');
                         $notification->message = $purpose . ' updated';
+                        $notification->school_id = Auth::user()->school_id;
                         $notification->academic_id = getAcademicId();
                         $notification->save();
                     }
                 }
             }
             // }
-
             if (ApiBaseMethod::checkUrl($request->fullUrl())) {
-
                 $data = '';
-
                 return ApiBaseMethod::sendResponse($data, null);
             }
         } catch (\Exception $e) {

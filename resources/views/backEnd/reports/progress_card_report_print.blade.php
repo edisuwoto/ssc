@@ -386,7 +386,7 @@
         }
     </style>
 </head>
-{{-- <script>
+<script>
         var is_chrome = function () { return Boolean(window.chrome); }
         if(is_chrome) 
         {
@@ -398,17 +398,7 @@
            window.print();
         //    window.close();
         }
-</script> --}}
-@php
-$generalSetting= App\SmGeneralSettings::where('school_id', Auth::user()->school_id)->first();
-if(!empty($generalSetting)){
-    $school_name =$generalSetting->school_name;
-    $site_title =$generalSetting->site_title;
-    $school_code =$generalSetting->school_code;
-    $address =$generalSetting->address;
-    $phone =$generalSetting->phone; 
-}
-@endphp
+</script>
 <body onLoad="loadHandler();">
     <div class="invoice_wrapper">
         <div class="invoice_print mb-0">
@@ -419,14 +409,14 @@ if(!empty($generalSetting)){
                             <td style="padding: 0">
                                 <div class="logo_img">
                                     <div class="thumb_logo">
-                                        <img  src="{{asset('/')}}{{generalSetting()->logo }}" alt="{{$school_name}}">
+                                        <img  src="{{asset('/')}}{{generalSetting()->logo }}" alt="{{generalSetting()->school_name}}">
                                     </div>
                                     <div class="company_info">
-                                        <h3>{{isset(generalSetting()->school_name)?generalSetting()->school_name:'Infix School Management ERP'}} </h3>
-                                        <h5>{{isset(generalSetting()->address)?generalSetting()->address:'Infix School Address'}}</h5>
+                                        <h3>{{isset(generalSetting()->school_name)? generalSetting()->school_name:'Infix School Management ERP'}} </h3>
+                                        <h5>{{isset(generalSetting()->address)? generalSetting()->address:'Infix School Address'}}</h5>
                                         <h5>
-                                            @lang('lang.email'): {{isset(generalSetting()->email)?generalSetting()->email:'admin@infixedu.com'}} 
-                                            @lang('lang.phone'): {{isset(generalSetting()->phone)?generalSetting()->phone:'+8801841412141 '}}
+                                            @lang('lang.email'): {{isset(generalSetting()->email)? generalSetting()->email:'admin@infixedu.com'}} 
+                                            @lang('lang.phone'): {{isset(generalSetting()->phone)? generalSetting()->phone:'+8801841412141 '}}
                                         </h5>
                                     </div>
                                     <div class="profile_thumb">
@@ -647,8 +637,10 @@ if(!empty($generalSetting)){
                                         </td>
                                     <?php
                                         }else{ ?>
-                                            <td>0</td>
-                                            <td>0</td>
+                                            <td>-</td>
+                                            <td>-</td>
+                                            <td>-</td>
+                                            <td>-</td>
                                         <?php
                                         }
                                             }

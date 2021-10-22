@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5f347ec9e9fa81e5ff7cf1f03b7913f0",
+    "content-hash": "d732bb61b988ffd1729d900f2636384d",
     "packages": [
         {
             "name": "africastalking/africastalking",
@@ -5602,16 +5602,16 @@
         },
         {
             "name": "spondonit/school-service",
-            "version": "v1.0.8",
+            "version": "v1.1.0",
             "source": {
                 "type": "git",
                 "url": "https://gitlab.com/spn4/school-service.git",
-                "reference": "5474091b655a91103d34ca63704ba3ec6abca854"
+                "reference": "835db6ac45d7c10b9a63649ab6fdd2ddf4c4c128"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://gitlab.com/api/v4/projects/spn4%2Fschool-service/repository/archive.zip?sha=5474091b655a91103d34ca63704ba3ec6abca854",
-                "reference": "5474091b655a91103d34ca63704ba3ec6abca854",
+                "url": "https://gitlab.com/api/v4/projects/spn4%2Fschool-service/repository/archive.zip?sha=835db6ac45d7c10b9a63649ab6fdd2ddf4c4c128",
+                "reference": "835db6ac45d7c10b9a63649ab6fdd2ddf4c4c128",
                 "shasum": ""
             },
             "require": {
@@ -5641,7 +5641,10 @@
                 }
             ],
             "description": "'Service Provider for Infix School application'",
-            "time": "2021-04-01T17:19:29+00:00"
+            "support": {
+                "issues": "https://gitlab.com/api/v4/projects/24764651/issues"
+            },
+            "time": "2021-08-23T11:57:30+00:00"
         },
         {
             "name": "spondonit/service",
@@ -5649,14 +5652,15 @@
             "source": {
                 "type": "git",
                 "url": "https://gitlab.com/spn4/service.git",
-                "reference": "d097c3877155f8da641fccb58554b2161bfdad9f"
+                "reference": "f32cc01da18d3de6165f65c1a61a91e1ad6ca5ee"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://gitlab.com/api/v4/projects/spn4%2Fservice/repository/archive.zip?sha=d097c3877155f8da641fccb58554b2161bfdad9f",
-                "reference": "d097c3877155f8da641fccb58554b2161bfdad9f",
+                "url": "https://gitlab.com/api/v4/projects/spn4%2Fservice/repository/archive.zip?sha=f32cc01da18d3de6165f65c1a61a91e1ad6ca5ee",
+                "reference": "f32cc01da18d3de6165f65c1a61a91e1ad6ca5ee",
                 "shasum": ""
             },
+            "default-branch": true,
             "type": "library",
             "extra": {
                 "laravel": {
@@ -5684,7 +5688,10 @@
                 }
             ],
             "description": "Basic Service Provider for Spondonit application",
-            "time": "2021-08-05T14:22:04+00:00"
+            "support": {
+                "issues": "https://gitlab.com/api/v4/projects/23165125/issues"
+            },
+            "time": "2021-09-20T16:52:01+00:00"
         },
         {
             "name": "stripe/stripe-php",
@@ -10611,5 +10618,6 @@
     "platform": {
         "php": "^7.3|^8.0"
     },
-    "platform-dev": []
+    "platform-dev": [],
+    "plugin-api-version": "2.0.0"
 }

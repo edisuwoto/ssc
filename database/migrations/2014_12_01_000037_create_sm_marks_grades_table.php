@@ -17,7 +17,7 @@ class CreateSmMarksGradesTable extends Migration
         Schema::create('sm_marks_grades', function (Blueprint $table) {
             $table->increments('id');
             $table->string('grade_name')->nullable();
-            $table->string('gpa')->nullable();
+            $table->float('gpa')->nullable();
             $table->float('from')->nullable();
             $table->float('up')->nullable();
             $table->integer('percent_from')->nullable();
@@ -32,7 +32,7 @@ class CreateSmMarksGradesTable extends Migration
             $table->integer('school_id')->nullable()->default(1)->unsigned();
             $table->foreign('school_id')->references('id')->on('sm_schools')->onDelete('cascade');
 
-            $table->integer('academic_id')->nullable()->default(1)->unsigned();
+            $table->integer('academic_id')->nullable()->unsigned();
             $table->foreign('academic_id')->references('id')->on('sm_academic_years')->onDelete('cascade');
         });
 

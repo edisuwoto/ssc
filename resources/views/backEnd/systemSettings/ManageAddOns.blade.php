@@ -109,7 +109,7 @@
                     </div>
                     <div class="row">
                         <div class="col-lg-12">
-                            <!--<table id="default_table" class="display school-table school-table-style" cellspacing="0" width="100%">
+                            <table id="default_table" class="display school-table school-table-style" cellspacing="0" width="100%">
                                 <thead>
                                     <tr>
                                         <th>@lang('lang.sl')</th>
@@ -130,6 +130,10 @@
                                             $is_module_available = 'Modules/' . $module->name. '/Providers/' .$module->name. 'ServiceProvider.php';
                                             $configName = $module->name;
                                             $module_array[]=$module->name;
+                                            $version = @moduleVersion($module->name);
+                                            if(is_null($version)){
+                                                $version = $module->version;
+                                            }
                                         @endphp
                                         <tr>
                                             @if($module->is_default==0)
@@ -140,7 +144,7 @@
                                                     @else
                                                     <strong>{{$module->name}}</strong>
                                                     @endif
-                                                    <small class="text-success text-bold"> ( Version: {{ @moduleVersion($module->name)}}</small> )
+                                                    <small class="text-success text-bold"> ( Version: {{ $version }}</small> )
                                                     <p>{{$module->notes}}</p>
 
                                                     @if(!empty($module->purchase_code)) 
@@ -490,7 +494,7 @@
                                                         </div>
                                                     </div> --}}
                                 </tbody>
-                            </table>-->
+                            </table>
                         </div>
                     </div>
                 </div>

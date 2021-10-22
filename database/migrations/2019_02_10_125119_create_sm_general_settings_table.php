@@ -55,13 +55,13 @@ class CreateSmGeneralSettingsTable extends Migration
             $table->integer('time_zone_id')->nullable();
             $table->integer('attendance_layout')->default(1)->nullable();
             $table->integer('session_id')->nullable()->unsigned();
-            $table->foreign('session_id')->references('id')->on('sm_academic_years')->onDelete('cascade');
+            $table->foreign('session_id')->references('id')->on('sm_academic_years')->onDelete('set null');
 
             $table->integer('language_id')->nullable()->default(1)->unsigned();
-            $table->foreign('language_id')->references('id')->on('sm_languages')->onDelete('cascade');
+            $table->foreign('language_id')->references('id')->on('sm_languages')->onDelete('set null');
 
             $table->integer('date_format_id')->nullable()->default(1)->unsigned();
-            $table->foreign('date_format_id')->references('id')->on('sm_date_formats')->onDelete('cascade');
+            $table->foreign('date_format_id')->references('id')->on('sm_date_formats')->onDelete('set null');
 
             $table->integer('ss_page_load')->nullable()->default(3);
 
@@ -97,7 +97,7 @@ class CreateSmGeneralSettingsTable extends Migration
             $table->integer('HimalayaSms')->default(1)->nullable();
             $table->integer('XenditPayment')->default(1)->nullable();
             $table->integer('academic_id')->nullable()->default(1)->unsigned();
-            $table->foreign('academic_id')->references('id')->on('sm_academic_years')->onDelete('cascade');
+            $table->foreign('academic_id')->references('id')->on('sm_academic_years')->onDelete('set null');
         });
 
 

@@ -133,16 +133,16 @@ class SmCommunicateController extends Controller
                     $users = User::where('role_id', $role)->where('active_status', 1)->get();
                     // return $users;
                     foreach ($users as $key => $user) {
-                        $notidication = new SmNotification();
-                        $notidication->role_id = $role;
-                        $notidication->message = "Notice for you";
-                        $notidication->date = $noticeData->notice_date;
-                        $notidication->user_id = $user->id;
-                        $notidication->url = "notice-list";
-                        $notidication->academic_id = getAcademicId();
-                        $notidication->save();
+                        $notification = new SmNotification();
+                        $notification->role_id = $role;
+                        $notification->message = "Notice for you";
+                        $notification->date = $noticeData->notice_date;
+                        $notification->user_id = $user->id;
+                        $notification->url = "notice-list";
+                        $notification->school_id = Auth::user()->school_id;
+                        $notification->academic_id = getAcademicId();
+                        $notification->save();
                     }
-                    // $notidication->user_id=$user->id;
 
 
                 }
@@ -303,14 +303,15 @@ class SmCommunicateController extends Controller
                 foreach ($request->role as $key => $role) {
                     $users = User::where('role_id', $role)->get();
                     foreach ($users as $key => $user) {
-                        $notidication = new SmNotification();
-                        $notidication->role_id = $role;
-                        $notidication->message = $request->notice_title;
-                        $notidication->date = $noticeData->notice_date;
-                        $notidication->user_id = $user->id;
-                        $notidication->url = "notice-list";
-                        $notidication->academic_id = getAcademicId();
-                        $notidication->save();
+                        $notification = new SmNotification();
+                        $notification->role_id = $role;
+                        $notification->message = $request->notice_title;
+                        $notification->date = $noticeData->notice_date;
+                        $notification->user_id = $user->id;
+                        $notification->url = "notice-list";
+                        $notification->school_id = Auth::user()->school_id;
+                        $notification->academic_id = getAcademicId();
+                        $notification->save();
                     }
                 }
             }

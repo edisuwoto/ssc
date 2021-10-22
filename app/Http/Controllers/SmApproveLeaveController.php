@@ -271,6 +271,8 @@ class SmApproveLeaveController extends Controller
             $notification->user_id = $staff_id;
             $notification->role_id = $role_id;
             $notification->date = date('Y-m-d');
+            $notification->school_id = Auth::user()->school_id;
+            $notification->academic_id = getAcademicId();
             $notification->message = 'Leave status updated';
             $notification->school_id = Auth::user()->school_id;
             $notification->save();

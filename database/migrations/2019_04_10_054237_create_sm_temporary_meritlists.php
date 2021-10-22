@@ -23,7 +23,7 @@ class CreateSmTemporaryMeritlists extends Migration
             $table->string('subjects_id_string',250)->nullable();
             $table->string('subjects_string',250)->nullable();
             $table->string('marks_string',250)->nullable();
-            $table->string('total_marks',250)->nullable();
+            $table->integer('total_marks')->nullable();
             $table->string('average_mark',250)->nullable();
             $table->string('gpa_point',250)->nullable();
             $table->string('result',250)->nullable();

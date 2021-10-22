@@ -104,6 +104,10 @@
                     <li class="nav-item">
                         <a class="nav-link" href="#studentTimeline" role="tab" data-toggle="tab">@lang('lang.timeline')</a>
                     </li>
+
+                    
+
+
                     <li class="nav-item edit-button">
                         <a href="{{route('update-my-children',$student_detail->id)}}" class="primary-btn small fix-gr-bg pull-right">{{__('Update Profile')}}</a>
                     </li>
@@ -645,6 +649,9 @@
                                     </div>
                                 </div>
                             </div>
+                            {{-- Custom field start --}}
+                                @include('backEnd.customField._coutom_field_show')
+                            {{-- Custom field end --}}
                         <!-- End Other Information Part -->
                         
                         {{-- Custom field start --}}
@@ -888,7 +895,8 @@
                     <!-- Start Exam Tab -->
                     <div role="tabpanel" class="tab-pane fade" id="studentExam">
                         @php
-                            $exam_count= count($exam_terms); 
+                            $today = date('Y-m-d H:i:s');
+                            $exam_count= count($exam_terms);
                         @endphp
                         @if($exam_count < 1)
                         <div class="white-box no-search no-paginate no-table-info mb-2">
@@ -934,167 +942,201 @@
                                 $optional_subject = 0;
                                 $optional_gpa = 0;
                             @endphp
-                            
-                            
-                            <table id="table_id" class="display school-table" cellspacing="0" width="100%">
-                                <thead>
-                                    <tr>
-                                        <th>@lang('lang.date')</th>
-                                        <th>
-                                            @lang('lang.subject') ( @lang('lang.full_marks'))
-                                        </th>
-                                        <th>
-                                            @lang('lang.obtained_marks')
-                                        </th>
-                                        <th>
-                                            @lang('lang.grade')
-                                        </th>
-                                        <th>
-                                            @lang('lang.gpa')
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                @foreach($get_results as $mark)
-                                    @php
-                                        if((!is_null($optional_subject_setup)) && (!is_null($student_optional_subject))){
-                                            if($mark->subject_id != @$student_optional_subject->subject_id){
-                                                $temp_grade[]=$mark->total_gpa_grade;
-                                            }
-                                        }else{
-                                            $temp_grade[]=$mark->total_gpa_grade;
-                                        }
-                                        $total_gpa_point += $mark->total_gpa_point;
-                                        if(! is_null(@$student_optional_subject)){
-                                            if(@$student_optional_subject->subject_id == $mark->subject->id && $mark->total_gpa_point  < @$optional_subject_setup->gpa_above ){
-                                                $total_gpa_point = $total_gpa_point - $mark->total_gpa_point;
-                                            }
-                                        }
-                                        $temp_gpa[]=$mark->total_gpa_point;
-                                        $get_subject_marks =  subjectFullMark ($mark->exam_type_id, $mark->subject_id );
-                                        
-                                        $subject_marks = App\SmStudent::fullMarksBySubject($exam->id, $mark->subject_id);
-                                        $schedule_by_subject = App\SmStudent::scheduleBySubject($exam->id, $mark->subject_id, @$student_detail);
-                                        $result_subject = 0;
-                                        $grand_total_marks += $get_subject_marks;
-                                        if(@$mark->is_absent == 0){
-                                            $grand_total += @$mark->total_marks;
-                                            if($mark->marks < $subject_marks->pass_mark){
-                                               $result_subject++;
-                                               $result++;
-                                            }
-                                        }else{
-                                            $result_subject++;
-                                            $result++;
-                                        }
-                                    @endphp
-                                    <tr>
-                                        <td>
-                                            {{ !empty($schedule_by_subject->date)? dateConvert($schedule_by_subject->date):''}}
-                                        </td>
-                                        <td>
-                                            {{@$mark->subject->subject_name}} ({{ @subjectFullMark($mark->exam_type_id, $mark->subject_id )}})
-                                            {{-- @if (@$optional_subject_setup!='' && @$student_optional_subject!='')
-                                                @if ($student_optional_subject->subject_id==$mark->subject->id)
-                                                    <small>(@lang('lang.optional'))</small>
-                                                @endif
-                                            @endif --}}
-                                        </td>
-                                        <td>
-                                            {{@$mark->total_marks}}
-                                        </td>
-                                        <td> 
-                                            {{@$mark->total_gpa_grade}} 
-                                        </td>
-                                        <td>
-                                        {{number_format(@$mark->total_gpa_point, 2, '.', '')}}
-                                            {{-- @php
-                                                if (@$student_optional_subject!='') {
-                                                    
-                                                    if (@$student_optional_subject->subject_id == $mark->subject->id) {
-                                                
-                                                        $optional_subject = 1;
-                                                    if ($mark->total_gpa_point > @$optional_subject_setup->gpa_above) {
-                                                        $optional_gpa = @$optional_subject_setup->gpa_above;
-                                                    echo "GPA Above ".@$optional_subject_setup->gpa_above;
-                                                    echo "<hr>";
-                                                    echo $mark->total_gpa_point  - @$optional_subject_setup->gpa_above;
-                                                    } else {
-                                                        echo "GPA Above ".@$optional_subject_setup->gpa_above;
-                                                        echo "<hr>";
-                                                        echo "0";
+                            @if($exam->examSettings->publish_date)
+                                @if($exam->examSettings->publish_date <=  $today)
+                                    <table id="table_id" class="display school-table" cellspacing="0" width="100%">
+                                        <thead>
+                                            <tr>
+                                                <th>@lang('lang.date')</th>
+                                                <th>
+                                                    @lang('lang.subject') ( @lang('lang.full_marks'))
+                                                </th>
+                                                <th>
+                                                    @lang('lang.obtained_marks')
+                                                </th>
+                                                <th>
+                                                    @lang('lang.grade')
+                                                </th>
+                                                <th>
+                                                    @lang('lang.gpa')
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        @foreach($get_results as $mark)
+                                            @php
+                                                if((!is_null($optional_subject_setup)) && (!is_null($student_optional_subject))){
+                                                    if($mark->subject_id != @$student_optional_subject->subject_id){
+                                                        $temp_grade[]=$mark->total_gpa_grade;
+                                                    }
+                                                }else{
+                                                    $temp_grade[]=$mark->total_gpa_grade;
+                                                }
+                                                $total_gpa_point += $mark->total_gpa_point;
+                                                if(! is_null(@$student_optional_subject)){
+                                                    if(@$student_optional_subject->subject_id == $mark->subject->id && $mark->total_gpa_point  < @$optional_subject_setup->gpa_above ){
+                                                        $total_gpa_point = $total_gpa_point - $mark->total_gpa_point;
                                                     }
                                                 }
-                                            }
-                                            @endphp --}}
-                                        </td>
-                                    </tr>
-                                @endforeach
-
-                                
-                                </tbody>
-                                    <tfoot>
-                                    <tr>
-                                        <th></th>
-                                        <th></th>
-                                        <th>
-                                            @lang('lang.grand_total'): {{$grand_total}}/{{$grand_total_marks}}
-                                        </th>
-                                        <th>@lang('lang.grade'): 
-                                        @php
-                                            if(in_array($failgpaname->grade_name,$temp_grade)){
-                                                echo $failgpaname->grade_name;
-                                                }else {
-                                                    $final_gpa_point = ($total_gpa_point- $optional_gpa) /  ($total_subject - $optional_subject);
-                                                    $average_grade=0;
-                                                    $average_grade_max=0;
-                                                    if($result == 0 && $grand_total_marks != 0){
-                                                        $gpa_point=number_format($final_gpa_point, 2, '.', '');
-                                                        if($gpa_point >= $maxgpa){
-                                                            $average_grade_max = App\SmMarksGrade::where('school_id',Auth::user()->school_id)
-                                                            ->where('academic_id', getAcademicId() )
-                                                            ->where('from', '<=', $maxgpa )
-                                                            ->where('up', '>=', $maxgpa )
-                                                            ->first('grade_name');
-
-                                                            echo  @$average_grade_max->grade_name;
-                                                        } else {
-                                                            $average_grade = App\SmMarksGrade::where('school_id',Auth::user()->school_id)
-                                                            ->where('academic_id', getAcademicId() )
-                                                            ->where('from', '<=', $final_gpa_point )
-                                                            ->where('up', '>=', $final_gpa_point )
-                                                            ->first('grade_name');
-                                                            echo  @$average_grade->grade_name;  
-                                                        }
+                                                $temp_gpa[]=$mark->total_gpa_point;
+                                                $get_subject_marks =  subjectFullMark ($mark->exam_type_id, $mark->subject_id );
+                                                
+                                                $subject_marks = App\SmStudent::fullMarksBySubject($exam->id, $mark->subject_id);
+                                                $schedule_by_subject = App\SmStudent::scheduleBySubject($exam->id, $mark->subject_id, @$student_detail);
+                                                $result_subject = 0;
+                                                $grand_total_marks += $get_subject_marks;
+                                                if(@$mark->is_absent == 0){
+                                                    $grand_total += @$mark->total_marks;
+                                                    if($mark->marks < $subject_marks->pass_mark){
+                                                    $result_subject++;
+                                                    $result++;
+                                                    }
                                                 }else{
-                                                    echo $failgpaname->grade_name;
-                                                }
-                                            }
-                                            @endphp
-                                        </th>
-                                        <th> 
-                                            @lang('lang.gpa')
-                                            @php
-                                                $final_gpa_point = 0;
-                                                $final_gpa_point = ($total_gpa_point - $optional_gpa)/  ($total_subject - $optional_subject);
-                                                $float_final_gpa_point=number_format($final_gpa_point,2);
-                                                if($float_final_gpa_point >= $maxgpa){
-                                                    echo $maxgpa;
-                                                }else {
-                                                    echo $float_final_gpa_point;
+                                                    $result_subject++;
+                                                    $result++;
                                                 }
                                             @endphp
-                                        </th>
-                                    </tr>
-                                    </tfoot>
-                            </table>
+                                            <tr>
+                                                <td>
+                                                    {{ !empty($schedule_by_subject->date)? dateConvert($schedule_by_subject->date):''}}
+                                                </td>
+                                                <td>
+                                                    {{@$mark->subject->subject_name}} ({{ @subjectFullMark($mark->exam_type_id, $mark->subject_id )}})
+                                                    {{-- @if (@$optional_subject_setup!='' && @$student_optional_subject!='')
+                                                        @if ($student_optional_subject->subject_id==$mark->subject->id)
+                                                            <small>(@lang('lang.optional'))</small>
+                                                        @endif
+                                                    @endif --}}
+                                                </td>
+                                                <td>
+                                                    {{@$mark->total_marks}}
+                                                </td>
+                                                <td> 
+                                                    {{@$mark->total_gpa_grade}} 
+                                                </td>
+                                                <td>
+                                                {{number_format(@$mark->total_gpa_point, 2, '.', '')}}
+                                                    {{-- @php
+                                                        if (@$student_optional_subject!='') {
+                                                            
+                                                            if (@$student_optional_subject->subject_id == $mark->subject->id) {
+                                                        
+                                                                $optional_subject = 1;
+                                                            if ($mark->total_gpa_point > @$optional_subject_setup->gpa_above) {
+                                                                $optional_gpa = @$optional_subject_setup->gpa_above;
+                                                            echo "GPA Above ".@$optional_subject_setup->gpa_above;
+                                                            echo "<hr>";
+                                                            echo $mark->total_gpa_point  - @$optional_subject_setup->gpa_above;
+                                                            } else {
+                                                                echo "GPA Above ".@$optional_subject_setup->gpa_above;
+                                                                echo "<hr>";
+                                                                echo "0";
+                                                            }
+                                                        }
+                                                    }
+                                                    @endphp --}}
+                                                </td>
+                                            </tr>
+                                        @endforeach
 
-                            @endif
+                                        
+                                        </tbody>
+                                            <tfoot>
+                                            <tr>
+                                                <th></th>
+                                                <th></th>
+                                                <th>
+                                                    @lang('lang.grand_total'): {{$grand_total}}/{{$grand_total_marks}}
+                                                </th>
+                                                <th>@lang('lang.grade'): 
+                                                @php
+                                                    if(in_array($failgpaname->grade_name,$temp_grade)){
+                                                        echo $failgpaname->grade_name;
+                                                        }else {
+                                                            $final_gpa_point = ($total_gpa_point- $optional_gpa) /  ($total_subject - $optional_subject);
+                                                            $average_grade=0;
+                                                            $average_grade_max=0;
+                                                            if($result == 0 && $grand_total_marks != 0){
+                                                                $gpa_point=number_format($final_gpa_point, 2, '.', '');
+                                                                if($gpa_point >= $maxgpa){
+                                                                    $average_grade_max = App\SmMarksGrade::where('school_id',Auth::user()->school_id)
+                                                                    ->where('academic_id', getAcademicId() )
+                                                                    ->where('from', '<=', $maxgpa )
+                                                                    ->where('up', '>=', $maxgpa )
+                                                                    ->first('grade_name');
+
+                                                                    echo  @$average_grade_max->grade_name;
+                                                                } else {
+                                                                    $average_grade = App\SmMarksGrade::where('school_id',Auth::user()->school_id)
+                                                                    ->where('academic_id', getAcademicId() )
+                                                                    ->where('from', '<=', $final_gpa_point )
+                                                                    ->where('up', '>=', $final_gpa_point )
+                                                                    ->first('grade_name');
+                                                                    echo  @$average_grade->grade_name;  
+                                                                }
+                                                        }else{
+                                                            echo $failgpaname->grade_name;
+                                                        }
+                                                    }
+                                                    @endphp
+                                                </th>
+                                                <th> 
+                                                    @lang('lang.gpa')
+                                                    @php
+                                                        $final_gpa_point = 0;
+                                                        $final_gpa_point = ($total_gpa_point - $optional_gpa)/  ($total_subject - $optional_subject);
+                                                        $float_final_gpa_point=number_format($final_gpa_point,2);
+                                                        if($float_final_gpa_point >= $maxgpa){
+                                                            echo $maxgpa;
+                                                        }else {
+                                                            echo $float_final_gpa_point;
+                                                        }
+                                                    @endphp
+                                                </th>
+                                            </tr>
+                                            </tfoot>
+                                    </table>
+                                        @else
+                                            <div class="white-box mt-3">
+                                                <table class="display school-table">
+                                                    <tr>
+                                                        <th colspan="4" class="text-center">
+                                                            {{ __('lang.Your result is not published yet.') }} {{ __('Your result publication date is: ')}}  {{ dateConvert($exam->examSettings->publish_date) }}
+                                                        </th>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                        @endif
+                                    @else
+                                        <div class="white-box mt-3">
+                                            <table class="display school-table">
+                                                <tr>
+                                                    <th colspan="4" class="text-center">
+                                                        {{ __('lang.Your result is not published yet.')}}
+                                                    </th>
+                                                </tr>
+                                            </table>
+                                        </div>
+
+                                    @endif
+                                @else
+                                    <div class="white-box mt-3">
+                                        <table class="display school-table">
+                                            <tr>
+                                                <th colspan="4" class="text-center">
+                                                    {{ __('lang.No Result found')}}
+                                                </th>
+                                            </tr>
+                                        </table>
+                                    </div>
+
+                                @endif
 
                             @endforeach
                         </div>
                     </div>
                     <!-- End Exam Tab -->
+
 
                         <!-- Start Documents Tab -->
                     <div role="tabpanel" class="tab-pane fade" id="studentDocuments">
@@ -1275,11 +1317,8 @@
                                         <h6 class="time text-uppercase">10.30 pm</h6>
                                         <div class="sub-activity">
                                             <h5 class="subtitle text-uppercase"> {{$timeline->title}}</h5>
-                                            <p>
-                                                {{$timeline->description}}
-                                            </p>
+                                            <p>{{$timeline->description}}</p>
                                         </div>
-
                                         <div class="close-activity">
                                             @if(file_exists($timeline->file))
                                              @if (@Auth::user()->role_id == 1)
@@ -1291,17 +1330,18 @@
                                                     @lang('lang.download')<span class="pl ti-download"></span>
                                                 </a>
                                              @endif
-
-
                                             @endif
                                         </div>
                                     </div>
                                 </div>
-                                @endforeach
                             </div>
+                            @endforeach
                         </div>
                     </div>
                     <!-- End Timeline Tab -->
+
+                    
+
                 </div>
             </div>
             <!-- End Student Details -->

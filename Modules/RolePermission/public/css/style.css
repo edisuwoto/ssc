@@ -8126,7 +8126,7 @@ input::placeholder, textarea::placeholder {
   height: 16px;
   background: transparent;
   border-radius: 50px;
-  border: 1px solid #415094;
+  border: 1px solid #01620e;
   -webkit-transition: all 0.4s ease 0s;
   -moz-transition: all 0.4s ease 0s;
   -o-transition: all 0.4s ease 0s;
@@ -8137,7 +8137,7 @@ input::placeholder, textarea::placeholder {
 .common-radio:checked ~ label::before {
   content: "";
   text-indent: 1px;
-  color: #415094;
+  color: #01620e;
   background-color: transparent;
   border: 1px solid #415094;
   border-top-color: #415094;
@@ -8160,7 +8160,7 @@ input::placeholder, textarea::placeholder {
   top: -2px;
   left: 3px;
   text-indent: 1px;
-  color: #415094;
+  color: #01620e;
   background-color: transparent;
   border: 0px;
   -webkit-transform: rotate(8deg);
@@ -8197,9 +8197,12 @@ input::placeholder, textarea::placeholder {
 /* line 110, ../../../../Desktop/role_permission/scss/_role_permission.scss */
 .erp_role_permission_area .single_permission .permission_header {
   padding: 15px 25px;
-  background-image: -moz-linear-gradient(0deg, #7c32ff 0%, #a235ec 70%, #c738d8 100%);
+  /*background-image: -moz-linear-gradient(0deg, #7c32ff 0%, #a235ec 70%, #c738d8 100%);
   background-image: -webkit-linear-gradient(0deg, #7c32ff 0%, #a235ec 70%, #c738d8 100%);
-  background-image: -ms-linear-gradient(0deg, #7c32ff 0%, #a235ec 70%, #c738d8 100%);
+  background-image: -ms-linear-gradient(0deg, #7c32ff 0%, #a235ec 70%, #c738d8 100%);*/
+  background-image: -moz-linear-gradient(0deg, #01620e 0%, #037212 70%, #048816 100%);
+  background-image: -webkit-linear-gradient(0deg, #01620e 0%, #037212 70%, #048816 100%);
+  background-image: -ms-linear-gradient(0deg, #01620e 0%, #037212 70%, #048816 100%);
 }
 
 /* line 115, ../../../../Desktop/role_permission/scss/_role_permission.scss */
@@ -8239,17 +8242,17 @@ input::placeholder, textarea::placeholder {
 /* line 142, ../../../../Desktop/role_permission/scss/_role_permission.scss */
 .erp_role_permission_area .single_permission .permission_body .submodule label {
   font-size: 15px;
-  color: #7c32ff;
+  color: #01620e;
 }
 
 /* line 146, ../../../../Desktop/role_permission/scss/_role_permission.scss */
 .erp_role_permission_area .single_permission .permission_body .submodule .common-radio:empty ~ label::before {
-  border: 1px solid #7c32ff;
+  border: 1px solid #01620e;
 }
 
 /* line 149, ../../../../Desktop/role_permission/scss/_role_permission.scss */
 .erp_role_permission_area .single_permission .permission_body .submodule .common-radio:checked ~ label::after {
-  color: #7c32ff;
+  color: #01620e;
   background-color: transparent;
 }
 

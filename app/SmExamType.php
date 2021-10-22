@@ -37,5 +37,8 @@ class SmExamType extends Model
         return $this->belongsTo(CustomResultSetting::class, 'id','exam_type_id');
     }
 
-
+    public function examSettings()
+    {
+        return $this->belongsTo(SmExamSetting::class, 'id','exam_type');
+    }
 }

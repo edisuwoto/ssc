@@ -138,29 +138,25 @@
                                         </button>
                                     </div>
                                 </div>
-                                @php
-                                if (isset($academic_year)) {
-                                    $copy_with_academic_year=explode(',',@$academic_year->copy_with_academic_year);
-                                }
-                                @endphp
+                                @if(!isset($academic_year))
+
                                 <div class="row no-gutters input-right-icon mt-40">
                                     <label for="checkbox" class="mb-2">@lang('lang.copy_with_academic_year')</label>
                                     <select multiple id="e1" name="copy_with_academic_year[]" style="width:300px">
-                                        <option value="App\SmClass"  @if (isset($academic_year)) @if (in_array("App\SmClass", @$copy_with_academic_year)) selected @endif @endif >@lang('lang.class') </option>
-                                        <option value="App\SmSection" @if (isset($academic_year)) @if (in_array("App\SmSection", @$copy_with_academic_year)) selected @endif @endif >@lang('lang.section')</option>
-                                        <option value="App\SmSubject" @if (isset($academic_year)) @if (in_array("App\SmSubject", @$copy_with_academic_year)) selected @endif @endif >@lang('lang.subject')</option>
-                                        <option value="App\SmExamType" @if (isset($academic_year)) @if (in_array("App\SmExamType", @$copy_with_academic_year)) selected @endif @endif >@lang('lang.exam_type') </option>
-                                        <option value="App\SmMarksGrade" @if (isset($academic_year)) @if (in_array("App\SmMarksGrade", @$copy_with_academic_year)) selected @endif @endif >@lang('lang.marks_grade') </option>
-                                        <option value="App\SmStudentCategory" @if (isset($academic_year)) @if (in_array("App\SmStudentCategory", @$copy_with_academic_year)) selected @endif @endif >@lang('lang.student_category')</option>
-                                        <option value="App\SmFeesGroup" @if (isset($academic_year)) @if (in_array("App\SmFeesGroup", @$copy_with_academic_year)) selected @endif @endif >@lang('lang.fees_group')</option>
-                                        {{-- <option value="App\SmFeesType" @if (isset($academic_year)) @if (in_array("App\SmFeesType", @$copy_with_academic_year)) selected @endif @endif >@lang('lang.fees_type')</option> --}}
-                                        <option value="App\SmLeaveType" @if (isset($academic_year)) @if (in_array("App\SmLeaveType", @$copy_with_academic_year)) selected @endif @endif >@lang('lang.leave_type')</option>
+                                        <option value="App\SmClass" >@lang('lang.class') </option>
+                                        <option value="App\SmSection">@lang('lang.section')</option>
+                                        <option value="App\SmSubject" >@lang('lang.subject')</option>
+                                        <option value="App\SmExamType" >@lang('lang.exam_type') </option>
+                                        <option value="App\SmStudentCategory" >@lang('lang.student_category')</option>
+                                        <option value="App\SmFeesGroup" >@lang('lang.fees_group')</option>
+                                        <option value="App\SmLeaveType">@lang('lang.leave_type')</option>
                                     </select>
                                     <div class="">
                                     <input type="checkbox" id="checkbox" class="common-checkbox">
                                     <label for="checkbox" class="mt-3">@lang('lang.select_all') </label>
                                     </div>
                                 </div>
+                                @endif
 
                                 @php
                                     $tooltip = "";

@@ -1811,7 +1811,11 @@ class CreateSmLanguagePhrasesTable extends Migration
             [0, 'format_standard_three_character', 'Standard Format 3 Character', 'Standard Format 3 Character', 'স্ট্যান্ডার্ড ফরমেট ৩ ক্যারেক্টার', 'Standard Format 3 Character'],
             [0,'prefix','Prefix','Prefix','প্রারম্ভে স্থাপন করা','Prefix'],
             [18, 'dues_payment', 'Dues Payment', 'Dues Payment', 'বকেয়া অর্থ প্রদান', 'Dues Payment'],
-            [19, 'coma', 'Coma', 'Coma', 'কমা', 'Coma']
+            [19, 'coma', 'Coma', 'Coma', 'কমা', 'Coma'],
+            [19, 'No Result found', 'No Result found', 'No se han encontrado resultados', 'কোন ফলাফল পাওয়া যায়নি', 'Aucun résultat trouvé'],
+            [19, 'Your result is not published yet.', 'Your result is not published yet.', 'Tu resultado aún no está publicado.', 'আপনার রেজাল্ট এখনো প্রকাশিত হয়নি।', 'Votre résultat nest pas encore publié.'],
+            [19, 'Your result publication date is:', 'Your result publication date is:', 'La fecha de publicación de su resultado es:', 'আপনার ফলাফল প্রকাশের তারিখ হল:', 'La date de publication de vos résultats est :'],
+            [19, 'using', 'utilizando', 'Coma', 'ব্যবহার', 'à laide de'],
 
         ];
 

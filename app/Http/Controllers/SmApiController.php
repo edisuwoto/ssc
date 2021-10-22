@@ -5677,6 +5677,8 @@ class SmApiController extends Controller
                             } elseif ($request->content_type == 'ot') {
                                 $notification->url = 'other-download-list';
                             }
+                            $notification->school_id = Auth::user()->school_id;
+                            $notification->academic_id = SmAcademicYear::SINGLE_SCHOOL_API_ACADEMIC_YEAR();
                             $notification->date = date('Y-m-d');
                             $notification->message = $purpose . ' updated';
                             $notification->save();
@@ -5700,6 +5702,8 @@ class SmApiController extends Controller
                                 $notification->url = 'student-others-download';
                             }
                             $notification->date = date('Y-m-d');
+                            $notification->school_id = Auth::user()->school_id;
+                            $notification->academic_id = SmAcademicYear::SINGLE_SCHOOL_API_ACADEMIC_YEAR();
                             $notification->message = $purpose . ' updated';
                             $notification->save();
                         }
@@ -5719,6 +5723,8 @@ class SmApiController extends Controller
                                 $notification->url = 'student-others-download';
                             }
                             $notification->date = date('Y-m-d');
+                            $notification->school_id = Auth::user()->school_id;
+                            $notification->academic_id = SmAcademicYear::SINGLE_SCHOOL_API_ACADEMIC_YEAR();
                             $notification->message = $purpose . ' updated';
                             $notification->save();
                         }
@@ -10425,6 +10431,8 @@ class SmApiController extends Controller
             $notification = new SmNotification;
             $notification->user_id = $leave_request_data->student->id;
             $notification->role_id = $role_id;
+            $notification->school_id = Auth::user()->school_id;
+            $notification->academic_id = SmAcademicYear::SINGLE_SCHOOL_API_ACADEMIC_YEAR();
             $notification->date = date('Y-m-d');
             $notification->message = 'Leave status updated';
             $notification->save();
@@ -10467,6 +10475,8 @@ class SmApiController extends Controller
             $notification->user_id = $leave_request_data->student->id;
             $notification->role_id = $role_id;
             $notification->date = date('Y-m-d');
+            $notification->school_id = Auth::user()->school_id;
+            $notification->academic_id = SmAcademicYear::SINGLE_SCHOOL_API_ACADEMIC_YEAR();
             $notification->message = 'Leave status updated';
             $notification->save();
 
@@ -20451,6 +20461,8 @@ class SmApiController extends Controller
                     $notification->user_id = $staff->id;
                     $notification->role_id = $role->id;
                     $notification->date = date('Y-m-d');
+                    $notification->school_id = Auth::user()->school_id;
+                    $notification->academic_id = SmAcademicYear::SINGLE_SCHOOL_API_ACADEMIC_YEAR();
                     $notification->message = $purpose . ' '.app('translator')->get('lang.updated');
                     $notification->save();
                     $user=User::find($notification->user_id);
@@ -20466,6 +20478,8 @@ class SmApiController extends Controller
                     $notification->user_id = $student->id;
                     $notification->role_id = 2;
                     $notification->date = date('Y-m-d');
+                    $notification->school_id = Auth::user()->school_id;
+                    $notification->academic_id = SmAcademicYear::SINGLE_SCHOOL_API_ACADEMIC_YEAR();
                     $notification->message = $purpose . ' '.app('translator')->get('lang.updated');
                     $notification->save();
                     $user=User::find($notification->user_id);
@@ -20478,6 +20492,8 @@ class SmApiController extends Controller
                     $notification->user_id = $student->id;
                     $notification->role_id = 2;
                     $notification->date = date('Y-m-d');
+                    $notification->school_id = Auth::user()->school_id;
+                    $notification->academic_id = SmAcademicYear::SINGLE_SCHOOL_API_ACADEMIC_YEAR();
                     $notification->message = $purpose . ' '.app('translator')->get('lang.updated');
                     $notification->save();
                     $user=User::find($notification->user_id);
@@ -20585,6 +20601,8 @@ class SmApiController extends Controller
                     $notification->user_id = $staff->id;
                     $notification->role_id = $role->id;
                     $notification->date = date('Y-m-d');
+                    $notification->school_id = Auth::user()->school_id;
+                    $notification->academic_id = SmAcademicYear::SINGLE_SCHOOL_API_ACADEMIC_YEAR();
                     $notification->message = $purpose . ' updated';
                     $notification->save();
                 }
@@ -20598,6 +20616,8 @@ class SmApiController extends Controller
                     $notification->user_id = $student->id;
                     $notification->role_id = 2;
                     $notification->date = date('Y-m-d');
+                    $notification->school_id = Auth::user()->school_id;
+                    $notification->academic_id = SmAcademicYear::SINGLE_SCHOOL_API_ACADEMIC_YEAR();
                     $notification->message = $purpose . ' updated';
                     $notification->save();
                 }
@@ -20608,6 +20628,8 @@ class SmApiController extends Controller
                     $notification->user_id = $student->id;
                     $notification->role_id = 2;
                     $notification->date = date('Y-m-d');
+                    $notification->school_id = Auth::user()->school_id;
+                    $notification->academic_id = SmAcademicYear::SINGLE_SCHOOL_API_ACADEMIC_YEAR();
                     $notification->message = $purpose . ' updated';
                     $notification->save();
                 }
@@ -20960,6 +20982,8 @@ class SmApiController extends Controller
             $notification->user_id = $staff_id;
             $notification->role_id = $role_id;
             $notification->date = date('Y-m-d');
+            $notification->school_id = Auth::user()->school_id;
+            $notification->academic_id = SmAcademicYear::SINGLE_SCHOOL_API_ACADEMIC_YEAR();
             $notification->message = 'Leave status updated';
             $notification->save();
 
@@ -20986,6 +21010,8 @@ class SmApiController extends Controller
             $notification->user_id = $staff_id;
             $notification->role_id = $role_id;
             $notification->date = date('Y-m-d');
+            $notification->school_id = Auth::user()->school_id;
+            $notification->academic_id = SmAcademicYear::SINGLE_SCHOOL_API_ACADEMIC_YEAR();
             $notification->message = 'Leave status updated';
             $notification->save();
 

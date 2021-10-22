@@ -123,20 +123,20 @@ function sendSMSApi($to_mobile, $sms, $id)
 
     else if ($activeSmsGateway->gateway_name == 'Himalayasms') {
         $client = new Client();
-		    $request = $client->get( "https://sms.techhimalaya.com/base/smsapi/index.php", [
-			'query' => [
-				'key' => $activeSmsGateway->himalayasms_key,
-				'senderid' => $activeSmsGateway->himalayasms_senderId,
-				'campaign' => $activeSmsGateway->himalayasms_campaign,
-				'routeid' => $activeSmsGateway->himalayasms_routeId ,
-				'contacts' => $to_mobile,
-				'msg' => $sms,
-				'type' => "text"
-			],
-			'http_errors' => false
-		]);
+            $request = $client->get( "https://sms.techhimalaya.com/base/smsapi/index.php", [
+            'query' => [
+                'key' => $activeSmsGateway->himalayasms_key,
+                'senderid' => $activeSmsGateway->himalayasms_senderId,
+                'campaign' => $activeSmsGateway->himalayasms_campaign,
+                'routeid' => $activeSmsGateway->himalayasms_routeId ,
+                'contacts' => $to_mobile,
+                'msg' => $sms,
+                'type' => "text"
+            ],
+            'http_errors' => false
+        ]);
 
-		$result = $request->getBody();
+        $result = $request->getBody();
 
     }
 
@@ -845,21 +845,47 @@ if (!function_exists('GetFinalResultBySubjectId')) {
 if (!function_exists('markGpa')) {
     function markGpa($marks)
     {
+        
         $mark = SmMarksGrade::where([['percent_from', '<=', floor($marks)], ['percent_upto', '>=', floor($marks)]])->where('school_id',Auth::user()->school_id)->where('academic_id', getAcademicId())->first();
-        if ($mark)
+        
+        if ($mark){
             return $mark;
-        else
-            return '';
+        }else{
+            $fail_grade = SmMarksGrade::where('active_status',1)
+                            ->where('academic_id', getAcademicId())
+                            ->where('school_id',Auth::user()->school_id)
+                            ->min('gpa');
+
+            $mark = SmMarksGrade::where('active_status',1)
+                        ->where('academic_id', getAcademicId())
+                        ->where('school_id',Auth::user()->school_id)
+                        ->where('gpa',$fail_grade)
+                        ->first();
+
+            return $mark;
+        }
     }
 }
 if (!function_exists('getGrade')) {
     function getGrade($grade)
     {
         $mark = SmMarksGrade::where('from', '<=', $grade)->where('up', '>=', $grade)->where('academic_id', getAcademicId())->first();
-        if ($mark)
+        if ($mark){
             return $mark;
-        else
-            return '';
+        }else{
+            $fail_grade = SmMarksGrade::where('active_status',1)
+                            ->where('academic_id', getAcademicId())
+                            ->where('school_id',Auth::user()->school_id)
+                            ->min('gpa');
+
+            $mark = SmMarksGrade::where('active_status',1)
+                        ->where('academic_id', getAcademicId())
+                        ->where('school_id',Auth::user()->school_id)
+                        ->where('gpa',$fail_grade)
+                        ->first();
+
+            return $mark;
+        }
     }
 }
 

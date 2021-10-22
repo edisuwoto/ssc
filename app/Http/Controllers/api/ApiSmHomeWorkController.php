@@ -186,6 +186,7 @@ class ApiSmHomeWorkController extends Controller
             $notification->date = date('Y-m-d');
             $notification->message = $student_detail->full_name .' Submit Homework ';
             $notification->school_id = 1;
+            $notification->academic_id = SmAcademicYear::SINGLE_SCHOOL_API_ACADEMIC_YEAR();
             $notification->save();
 
             if(ApiBaseMethod::checkUrl($request->fullUrl())){
@@ -692,6 +693,7 @@ class ApiSmHomeWorkController extends Controller
             $notification->date = date('Y-m-d');
             $notification->message = $student_detail->full_name .' Submit Homework ';
             $notification->school_id = 1;
+            $notification->academic_id = SmAcademicYear::SINGLE_SCHOOL_API_ACADEMIC_YEAR();
             $notification->save();
 
             if(ApiBaseMethod::checkUrl($request->fullUrl())){

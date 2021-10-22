@@ -17,13 +17,13 @@
                             </li>
                         @endif -->
 
-
+                        <!--
                        @if(userPermission(428) && menuStatus(428) )
 
                                 <li  data-position="{{menuPosition(428)}}">
                                     <a href="{{route('base_setup')}}">@lang('lang.base_setup')</a>
                                 </li>
-                         @endif
+                         @endif-->
 
                          @if(userPermission(549) && menuStatus(549) )
 

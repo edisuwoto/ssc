@@ -112,11 +112,22 @@ class SmReportController extends Controller
                     $tabulation_details['grade_chart'] = $grade_chart;
                     $year=YearCheck::getYear();
 
+                    $examSubjects = SmExam::where([['exam_type_id', $exam_term_id], ['section_id', $section_id], ['class_id', $class_id]])
+                                ->where('school_id',Auth::user()->school_id)
+                                ->where('academic_id',getAcademicId())
+                                ->get();
+
+                    $examSubjectIds = [];
+                    foreach($examSubjects as $examSubject){
+                        $examSubjectIds[] = $examSubject->subject_id;
+                    }
+                    
                     $subjects = SmAssignSubject::where([
                         ['class_id', $request->class],
                         ['section_id', $request->section]
                     ])->where('academic_id', getAcademicId())
                     ->where('school_id',Auth::user()->school_id)
+                    ->whereIn('subject_id',$examSubjectIds)
                     ->get();
 
                     $optional_subject_setup = SmClassOptionalSubject::where('class_id','=',$request->class)->first();
@@ -145,7 +156,6 @@ class SmReportController extends Controller
 
 
                     
-
                 return view('backEnd.reports.tabulation_sheet_report',compact('allClass',
                 'exam_types',
                 'classes',
@@ -187,10 +197,20 @@ class SmReportController extends Controller
                             ->max('gpa');
                 
                 
+                $examSubjects = SmExam::where([['exam_type_id', $exam_term_id], ['section_id', $section_id], ['class_id', $class_id]])
+                                ->where('school_id',Auth::user()->school_id)
+                                ->where('academic_id',getAcademicId())
+                                ->get();
+
+                $examSubjectIds = [];
+                foreach($examSubjects as $examSubject){
+                    $examSubjectIds[] = $examSubject->subject_id;
+                }
+
 
                 $student_detail = $studentDetails = SmStudent::find($request->student);
 
-                $subjects = $studentDetails->className->subjects->where('section_id', $request->section)
+                $subjects = $studentDetails->className->subjects->whereIn('subject_id',$examSubjectIds)
                             ->where('academic_id', getAcademicId())
                             ->where('school_id',Auth::user()->school_id);
                             
@@ -279,10 +299,16 @@ class SmReportController extends Controller
                     $subjects       = SmAssignSubject::where([
                         ['class_id', $request->class],
                         ['section_id', $request->section]
-                    ])->where('academic_id', getAcademicId())->where('school_id',Auth::user()->school_id)->get();
+                    ])->where('academic_id', getAcademicId())->where('school_id',Auth::user()->school_id)
+                    ->whereIn('subject_id', $examSubjectIds)
+                    ->get();
+
+                    
+
                     foreach ($subjects as $sub) {
                         $subject_list_name[] = $sub->subject->subject_name;
                     }
+
                     $grade_chart = SmMarksGrade::select('grade_name', 'gpa', 'percent_from as start', 'percent_upto as end', 'description')
                     ->where('active_status', 1)
                     ->where('academic_id', getAcademicId())
@@ -337,6 +363,7 @@ class SmReportController extends Controller
                 ])
                 ->where('academic_id', getAcademicId())
                 ->where('school_id',Auth::user()->school_id)
+                ->whereIn('subject_id', $examSubjectIds)
                 ->get();
 
 
@@ -451,11 +478,22 @@ class SmReportController extends Controller
                             ->where('school_id',Auth::user()->school_id)
                             ->get();
 
+                $examSubjects = SmExam::where([['exam_type_id', $exam_term_id], ['section_id', $section_id], ['class_id', $class_id]])
+                                ->where('school_id',Auth::user()->school_id)
+                                ->where('academic_id',getAcademicId())
+                                ->get();
+
+                $examSubjectIds = [];
+                foreach($examSubjects as $examSubject){
+                    $examSubjectIds[] = $examSubject->subject_id;
+                }
+
                 $subjects       = SmAssignSubject::where([
                     ['class_id', $request->class_id],
                     ['section_id', $request->section_id]
                 ])->where('academic_id', getAcademicId())
                 ->where('school_id',Auth::user()->school_id)
+                ->whereIn('subject_id', $examSubjectIds)
                 ->get();
 
                 $optional_subject_setup=SmClassOptionalSubject::where('class_id','=',$request->class_id)->first();
@@ -514,10 +552,25 @@ class SmReportController extends Controller
                 $section_id     = $request->section_id;
                 $student_id     = $request->student_id;
 
+
+                $examSubjects = SmExam::where([['exam_type_id', $exam_term_id], ['section_id', $section_id], ['class_id', $class_id]])
+                                ->where('school_id',Auth::user()->school_id)
+                                ->where('academic_id',getAcademicId())
+                                ->get();
+
+                $examSubjectIds = [];
+                foreach($examSubjects as $examSubject){
+                    $examSubjectIds[] = $examSubject->subject_id;
+                }
+
                 $subjects       = SmAssignSubject::where([
                     ['class_id', $request->class_id],
                     ['section_id', $request->section_id]
-                ])->where('academic_id', getAcademicId())->where('school_id',Auth::user()->school_id)->get();
+                ])->where('academic_id', getAcademicId())
+                ->where('school_id',Auth::user()->school_id)
+                ->whereIn('subject_id', $examSubjectIds)
+                ->get();
+
                 $optional_subject_setup=SmClassOptionalSubject::where('class_id','=',$request->class_id)->first();
 
                 $fail_grade = SmMarksGrade::where('active_status',1)
@@ -792,10 +845,21 @@ class SmReportController extends Controller
         $section_id = $request->section;
         $student_id = $request->student;
 
+        $examSubjects = SmExam::where([['section_id', $section_id], ['class_id', $class_id]])
+                                ->where('school_id',Auth::user()->school_id)
+                                ->where('academic_id',getAcademicId())
+                                ->get();
+
+        $examSubjectIds = [];
+        foreach($examSubjects as $examSubject){
+            $examSubjectIds[] = $examSubject->subject_id;
+        }
+
         $subjects = SmAssignSubject::where([
                     ['class_id', $request->class], 
                     ['section_id', $request->section]])
                     ->where('school_id',Auth::user()->school_id)
+                    ->whereIn('subject_id', $examSubjectIds)
                     ->get();
 
         $assinged_exam_types = [];
@@ -938,11 +1002,23 @@ class SmReportController extends Controller
         $section_id = $request->section_id;
         $student_id = $request->student_id;
 
+
+        $examSubjects = SmExam::where([ ['section_id', $section_id], ['class_id', $class_id]])
+                                ->where('school_id',Auth::user()->school_id)
+                                ->where('academic_id',getAcademicId())
+                                ->get();
+
+                $examSubjectIds = [];
+                foreach($examSubjects as $examSubject){
+                    $examSubjectIds[] = $examSubject->subject_id;
+                }
+
         $subjects = SmAssignSubject::where([
                     ['class_id', $request->class_id], 
                     ['section_id', $request->section_id]])
                     ->where('academic_id', getAcademicId())
                     ->where('school_id',Auth::user()->school_id)
+                    ->whereIn('subject_id', $examSubjectIds)
                     ->get();
 
         $assinged_exam_types = [];
@@ -1024,4 +1100,5 @@ class SmReportController extends Controller
             return redirect()->back();
         }
     }
+
 }

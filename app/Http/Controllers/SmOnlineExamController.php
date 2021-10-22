@@ -479,13 +479,14 @@ class SmOnlineExamController extends Controller
                 $notification->save();
 
                 $parent = SmParent::find($student->parent_id);
-                        $notidication = new SmNotification();
-                        $notidication->role_id = 3;
-                        $notidication->message = "New online exam published for your child";
-                        $notidication->date = date('Y-m-d');
-                        $notidication->user_id = $parent->user_id;
-                        $notidication->academic_id = getAcademicId();
-                        $notidication->save();
+                        $notification = new SmNotification();
+                        $notification->role_id = 3;
+                        $notification->message = "New online exam published for your child";
+                        $notification->date = date('Y-m-d');
+                        $notification->user_id = $parent->user_id;
+                        $notification->school_id = Auth::user()->school_id;
+                        $notification->academic_id = getAcademicId();
+                        $notification->save();
             }
 
             Toastr::success('Operation successful', 'Success');

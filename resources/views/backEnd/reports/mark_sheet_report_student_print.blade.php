@@ -414,18 +414,7 @@
 
     </style>
 </head>
-@php
-    $generalSetting= App\SmGeneralSettings::find(1);
-      if(!empty($generalSetting)){
-          $school_name =$generalSetting->school_name;
-          $site_title =$generalSetting->site_title;
-          $school_code =$generalSetting->school_code;
-          $address =$generalSetting->address;
-          $phone =$generalSetting->phone;
-          $email =$generalSetting->email;  
-      }
-@endphp
-{{-- <script>
+<script>
         var is_chrome = function () { return Boolean(window.chrome); }
         if(is_chrome) 
         {
@@ -437,7 +426,7 @@
         {
            window.print();
         }
-</script> --}}
+</script>
 <body onLoad="loadHandler();">
     <div class="invoice_wrapper">
         <!-- invoice print part here -->
@@ -449,7 +438,7 @@
                             <td>
                                 <div class="logo_img">
                                     <div class="thumb_logo">
-                                        <img  src="{{asset('/')}}{{generalSetting()->logo }}" alt="{{$school_name}}">
+                                        <img  src="{{asset('/')}}{{generalSetting()->logo }}" alt="{{generalSetting()->school_name}}">
                                     </div>
                                     <div class="company_info">
                                         <h3>{{isset(generalSetting()->school_name)?generalSetting()->school_name:'Infix School Management ERP'}}</h3>

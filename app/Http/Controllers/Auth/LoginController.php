@@ -172,15 +172,24 @@ class LoginController extends Controller
 
     public function login(Request $request)
     {
+        $logged_in = false;
 
-        $this->validateLogin($request);
-        if ($this->hasTooManyLoginAttempts($request)) {
-            $this->fireLockoutEvent($request);
-
-            return $this->sendLockoutResponse($request);
+        if (config('app.app_sync') && $request->auto_login){
+            $user = User::where('email', $request->email)->first();
+            if ($user){
+                Auth::login($user);
+                $logged_in = Auth::check();
+            }
+        } else{
+            $this->validateLogin($request);
+            if ($this->hasTooManyLoginAttempts($request)) {
+                $this->fireLockoutEvent($request);
+                return $this->sendLockoutResponse($request);
+            }
+            $logged_in = $this->attemptLogin($request);
         }
 
-        if ($this->attemptLogin($request)) {
+        if ($logged_in) {
            
             // System date format save in session 
             $date_format_id = SmGeneralSettings::first(['date_format_id'])->date_format_id;
@@ -189,7 +198,7 @@ class LoginController extends Controller
 
             // System academic session id in session
             $session_id = SmGeneralSettings::where('school_id', Auth::user()->school_id)->first('session_id')->session_id;
-            $sessionId = session()->put('sessionId', $session_id);
+            session()->put('sessionId', $session_id);
 
             $generalSettings = SmGeneralSettings::where('school_id',Auth::user()->school_id)->first();
             session()->put('generalSetting',$generalSettings);
@@ -243,7 +252,7 @@ class LoginController extends Controller
             }
             
             $school_config = Auth::check() ? SmGeneralSettings::where('school_id', Auth::user()->school_id)->first() :
-            SmGeneralSettings::where('school_id', Auth::user()->school_id)->first();
+            SmGeneralSettings::where('school_id', 1)->first();
             session()->put('school_config', $school_config);
 
             $dashboard_background = DB::table('sm_background_settings')->where([['is_default', 1], ['title', 'Dashboard Background']])->first();
@@ -276,7 +285,6 @@ class LoginController extends Controller
 
                         return $this->sendLoginResponse($request);
                     } else {
-
                         $this->guard()->logout();
                         Toastr::error('Your Institution is not Approved, Please contact with administrator.', 'Failed');
                         return redirect('login');

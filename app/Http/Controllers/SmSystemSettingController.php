@@ -70,23 +70,22 @@ class SmSystemSettingController extends Controller
     public function sendTestMail()
     {
 
-        $e = SmEmailSetting::where('active_status',1)->where('school_id', Auth::user()->school_id)->first();
-        if (empty($e)) {
+        $settings = SmEmailSetting::where('active_status',1)->where('school_id', Auth::user()->school_id)->first();
+        if (empty($settings)) {
             Toastr::error('Email Setting is Not Complete', 'Failed');
             return redirect()->back();
         }
 
-        if ( ($e->mail_driver == "smtp") &&( $e->mail_username == '' || $e->mail_password == ''
-            || $e->mail_encryption == ''
-            || $e->mail_port == ''
-            || $e->mail_host == ''
-            || $e->mail_driver == '' ) 
+        if ( ($settings->mail_driver == "smtp") &&( $settings->mail_username == '' || $settings->mail_password == ''
+            || $settings->mail_encryption == ''
+            || $settings->mail_port == ''
+            || $settings->mail_host == ''
+            || $settings->mail_driver == '' )
         ) {
             Toastr::error('All Field in Smtp Details Must Be filled Up', 'Failed');
             return redirect()->back();
         }
         try {
-            $settings = SmEmailSetting::where('active_status',1)->where('school_id', Auth::user()->school_id)->first();
             $reciver_email = Auth::user()->email ?? User::find(1)->email;
             $receiver_name = Auth::user()->full_name;
             $subject = 'Email Setup Testing';
@@ -1005,7 +1004,7 @@ class SmSystemSettingController extends Controller
                     $gatewayDetailss->twilio_account_sid = $twilio_account_sid;
                     $gatewayDetailss->twilio_authentication_token = $twilio_authentication_token;
                     $gatewayDetailss->twilio_registered_no = $twilio_registered_no;
-                    $gatewayDetailss->school_id = Auth::user()->school_id;
+                    $gatewayDetail->school_id = Auth::user()->school_id;
                     $results = $gatewayDetailss->update();
                 } else {
 
@@ -1594,7 +1593,7 @@ class SmSystemSettingController extends Controller
                 return redirect()->back();
             }
         }
-
+        $results = false;
 
         try {
             if ($request->engine_type == "smtp") {
@@ -1624,7 +1623,7 @@ class SmSystemSettingController extends Controller
                 $MAIL_DRIVER = env($key6);
                 $FROM_MAIL = env($key7);
 
-                if (file_exists($path)) {
+                if (file_exists($path) && !moduleStatusCheck('Saas')) {
                     file_put_contents($path, str_replace(
                         "$key1=" . $MAIL_USERNAME,
                         "$key1=" . $value1,
@@ -1669,6 +1668,8 @@ class SmSystemSettingController extends Controller
 
                 if (empty($e)) {
                     $e = new SmEmailSetting();
+                    $e->email_engine_type = $request->smtp;
+                    $e->school_id = Auth::user()->school_id;
                 }
                 $e->from_name = $request->from_name;
                 $e->from_email = $request->from_email;
@@ -1679,7 +1680,6 @@ class SmSystemSettingController extends Controller
                 $e->mail_password = $request->mail_password;
                 $e->mail_encryption = $request->mail_encryption;
                 $e->active_status = $request->active_status;
-                $e->school_id = Auth::user()->school_id;
                 $results = $e->save();
 
                 if ($request->active_status == 1) {
@@ -1691,8 +1691,10 @@ class SmSystemSettingController extends Controller
                     $phpp = SmEmailSetting::where('email_engine_type', 'php')
                     ->where('school_id', Auth::user()->school_id)
                     ->first();
-                    $phpp->active_status = 0;
-                    $phpp->save();
+                    if ($phpp){
+                        $phpp->active_status = 0;
+                        $phpp->save();
+                    }
                 }
             }
 
@@ -1702,10 +1704,11 @@ class SmSystemSettingController extends Controller
 
                 if (empty($php)) {
                     $php = new SmEmailSetting();
+                    $php->email_engine_type = 'php';
+                    $php->school_id = Auth::user()->school_id;
                 }
                 $php->from_name = $request->from_name;
                 $php->from_email = $request->from_email;
-                $php->school_id = Auth::user()->school_id;
                 $php->active_status = $request->active_status;
                 $results = $php->save();
 
@@ -1714,8 +1717,10 @@ class SmSystemSettingController extends Controller
                     $gs->email_driver = "php";
                     $gs->save();
                     $smtp = SmEmailSetting::where('email_engine_type', 'smtp')->where('school_id', Auth::user()->school_id)->first();
-                    $smtp->active_status = 0;
-                    $smtp->save();
+                    if ($smtp){
+                        $smtp->active_status = 0;
+                        $smtp->save();
+                    }
                 }
 
             }
@@ -2098,51 +2103,59 @@ class SmSystemSettingController extends Controller
     {
 
         try {
-            SmLanguage::where('active_status', '=', 1)->where('school_id', Auth::user()->school_id)->update(['active_status' => 0]);
-            $language = SmLanguage::find($id);
-            $language->active_status = 1;
-            $result = $language->save();
-
-            if ($result) {
-                $systemLanguage = SmLanguage::where('school_id', Auth::user()->school_id)->get();
-                
-                session()->forget('systemLanguage');
-                session()->put('systemLanguage', $systemLanguage);
-                
-            }
 
             if ($id) {
-                $lang = Language::where('code', $language->language_universal)->first();
-                $users = User::where('school_id',Auth::user()->school_id)->get();
-                foreach($users as $user){
-                    $user->language = $lang->id;
-                    if($lang->rtl == 1){
-                        $user->rtl_ltl = 1;
-                        $user->save();
-                    }
-                    $user->save();
-                }
-                              
-                if( $lang->rtl == 1 ){
-                    session()->put('user_text_direction',1);
-                }
-                else{
-                    session()->put('user_text_direction',2);
-                }
-              
-                session()->forget('user_language');
-                session()->put('user_language', $lang->code);
-            } 
+                $this->setDefaultLanguge((int) $id);
+            }
 
-            
             Toastr::success('Operation Success', 'Success');
             return redirect()->back();
-            // Session::flash('langChange', 'Successfully Language Changed');
-            // return redirect()->to('locale/' . $language->language_universal);
+
         } catch (\Exception $e) {
+
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
         }
+    }
+
+    private function setDefaultLanguge($id){
+
+        SmLanguage::where('active_status', '=', 1)->where('school_id', Auth::user()->school_id)->update(['active_status' => 0]);
+        if(is_integer($id)){
+            $language = SmLanguage::where('school_id', Auth::user()->school_id)->findOrFail($id);
+        } else{
+            $language = SmLanguage::where('school_id', Auth::user()->school_id)->where('language_universal', $id)->firstOrFail();
+        }
+
+        $language->active_status = 1;
+        $language->save();
+
+
+
+        $lang = Language::where('code', $language->language_universal)->first();
+
+        $users = User::where('school_id',Auth::user()->school_id)->get();
+
+        foreach($users as $user){
+            $user->language = $lang->code;
+            if($lang->rtl == 1){
+                $user->rtl_ltl = 1;
+                $user->save();
+            }else{
+                $user->rtl_ltl = 2;
+                $user->save();
+            }
+            $user->save();
+        }
+
+        if( $lang->rtl == 1 ){
+            session()->put('user_text_direction',1);
+        }
+        else{
+            session()->put('user_text_direction',2);
+        }
+
+        session()->put('user_language', $lang->code);
     }
 
     public function getTranslationTerms(Request $request)
@@ -2717,42 +2730,37 @@ class SmSystemSettingController extends Controller
 
     public function ajaxUserLanguageChange(Request $request)
     {
-      
+
         try {
 
             if ($request->id) {
 
-                $selected = User::find(Auth::user()->id);
-                $selected->language = $request->id;
-                $selected->save();
-                $lang = Language::where('code', $request->id)->first();
-                $user = Auth::user();
-                if($user->role_id != 1 ){
+                $lang = Language::where('code', $request->id)->firstOrFail();
+                $user = User::find(Auth::user()->id);
+
+                if($user->role_id == 1 ){
+                    $this->setDefaultLanguge($request->id);
+                } else{
+                    $user->language = $request->id;
                     if($lang->rtl == 1){
                         $user->rtl_ltl = 1;
-                        $user->save();
-                    }   
-                }
-                                
-                if( $lang->rtl == 1 ){
-                    session()->put('user_text_direction',1);
-                }
-                else{
-                    session()->put('user_text_direction',2);
-                }
-              
-                session()->forget('user_language');
-                session()->put('user_language', $request->id);
+                        session()->put('user_text_direction',1);
+                    }else{
+                        $user->rtl_ltl = 2;
+                        session()->put('user_text_direction',2);
+                    }
+                    $user->save();
 
-               
-               
-                return response()->json([$selected->language]);
+                    session()->put('user_language', $request->id);
+                }
+
+
+                return response()->json([$user->language]);
             } else {
-                return '';
+                return 'id';
             }
         } catch (\Exception $e) {
-            Toastr::error('Operation Failed', 'Failed');
-            return redirect()->back();
+            return $e;
         }
     }
 

@@ -28,10 +28,10 @@
     overflow: hidden;
     padding: 5px;
     border: 0px solid transparent;
-    background: -webkit-linear-gradient(90deg, #7c32ff 0%, #c738d8 100%);
-    background: -moz-linear-gradient(90deg, #7c32ff 0%, #c738d8 100%);
-    background: -o-linear-gradient(90deg, #7c32ff 0%, #c738d8 100%);
-    background: linear-gradient(90deg, #7c32ff 0%, #c738d8 100%);
+    background: -webkit-linear-gradient(90deg, #01620e 0%, #037913 100%);
+    background: -moz-linear-gradient(90deg, #01620e 0%, #037913 100%);
+    background: -o-linear-gradient(90deg, #01620e 0%, #037913 100%);
+    background: linear-gradient(90deg, #01620e 0%, #037913 100%);
     color: #fff;
 }
 
@@ -148,7 +148,7 @@ creator:rashed;
 #progressbar li.active:before,
 #progressbar li.active:after {
     background-color: rebeccapurple;
-    background: -webkit-linear-gradient( 90deg, #7c32ff 0%, #c738d8 100%, #7c32ff 100%);
+    background: -webkit-linear-gradient( 90deg, #01620e 0%, #c738d8 100%, #01620e 100%);
     color: white;
     transition: all 0.4s ease 0s;
     background-size: 200% auto;
@@ -190,11 +190,11 @@ creator:rashed;
 /* icon */
 
 #toast-container>.customer-info {
-    background: -webkit-linear-gradient( 90deg, #7c32ff 0%, #c738d8 51%, #7c32ff 100%);
-    background: -moz-linear-gradient( 90deg, #7c32ff 0%, #c738d8 51%, #7c32ff 100%);
-    background: -o-linear-gradient(90deg, #7c32ff 0%, #c738d8 51%, #7c32ff 100%);
-    background: -ms-linear-gradient(90deg, #7c32ff 0%, #c738d8 51%, #7c32ff 100%);
-    background: linear-gradient(90deg, #7c32ff 0%, #c738d8 51%, #7c32ff 100%);
+    background: -webkit-linear-gradient( 90deg, #01620e 0%, #037913 51%, #01620e 100%);
+    background: -moz-linear-gradient( 90deg, #01620e 0%, #037913 51%, #01620e 100%);
+    background: -o-linear-gradient(90deg, #01620e 0%, #037913 51%, #01620e 100%);
+    background: -ms-linear-gradient(90deg, #01620e 0%, #037913 51%, #01620e 100%);
+    background: linear-gradient(90deg, #01620e 0%, #037913 51%, #01620e 100%);
     color: #ffffff;
     background-size: 200% auto;
     -webkit-transition: all 0.4s ease 0s;
@@ -791,8 +791,8 @@ a#close_sidebar i {
         padding: 0;
         background: transparent !important;
         border: 0;
-        background: #7c32ff !important;
-        border: 1px solid#7c32ff;
+        background: #01620e !important;
+        border: 1px solid#01620e;
         z-index: 99;
         width: 48px;
         height: 48px;

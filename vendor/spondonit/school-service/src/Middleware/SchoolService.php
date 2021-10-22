@@ -54,6 +54,9 @@ class SchoolService
 
         $c = Storage::exists('.app_installed') ? Storage::get('.app_installed') : false;
         if (!$c) {
+             if ($request->wantsJson()) {
+                return response()->json(false);
+            }
             return redirect('/install');
         }
 

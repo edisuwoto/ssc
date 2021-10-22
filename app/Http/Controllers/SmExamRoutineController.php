@@ -319,17 +319,18 @@ class SmExamRoutineController extends Controller
             $students = SmStudent::where('class_id', $request->class_id)->where('section_id', $request->section_id)->where('active_status', 1)->get();
             foreach ($students as $key => $student) {
 
-                $notidication = new SmNotification();
-                $notidication->role_id = $student->role_id;
-                $notidication->message = app('translator')->get('lang.new_exam_schedule');
-                $notidication->date = date('Y-m-d');
-                $notidication->user_id = $student->user_id;
-                $notidication->academic_id = getAcademicId();
-                $notidication->save();
+                $notification = new SmNotification();
+                $notification->role_id = $student->role_id;
+                $notification->message = app('translator')->get('lang.new_exam_schedule');
+                $notification->date = date('Y-m-d');
+                $notification->user_id = $student->user_id;
+                $notification->school_id = Auth::user()->school_id;
+                $notification->academic_id = getAcademicId();
+                $notification->save();
 
                 try{
                     $user=User::find($student->user_id);
-                    Notification::send($user, new StudentExamCreateNotification($notidication));
+                    Notification::send($user, new StudentExamCreateNotification($notification));
                 }catch (\Exception $e) {
                     Log::info($e->getMessage());
                 }
@@ -337,17 +338,18 @@ class SmExamRoutineController extends Controller
 
                 $parent = SmParent::find($student->parent_id)->first();
 
-                $notidication = new SmNotification();
-                $notidication->role_id = 3;
-                $notidication->message = app('translator')->get('lang.new_exam_schedule_child');
-                $notidication->date = date('Y-m-d');
-                $notidication->user_id = $parent->user_id;
-                $notidication->academic_id = getAcademicId();
-                $notidication->save();
+                $notification = new SmNotification();
+                $notification->role_id = 3;
+                $notification->message = app('translator')->get('lang.new_exam_schedule_child');
+                $notification->date = date('Y-m-d');
+                $notification->user_id = $parent->user_id;
+                $notification->school_id = Auth::user()->school_id;
+                $notification->academic_id = getAcademicId();
+                $notification->save();
 
                 try{
                     $user=User::find($parent->user_id);
-                    Notification::send($user, new StudentExamCreateNotification($notidication));
+                    Notification::send($user, new StudentExamCreateNotification($notification));
                 }catch (\Exception $e) {
                     Log::info($e->getMessage());
                 }
@@ -370,34 +372,36 @@ class SmExamRoutineController extends Controller
 
             $students = SmStudent::where('class_id', $request->class_id)->where('section_id', $request->section_id)->where('active_status', 1)->get();
             foreach ($students as $key => $student) {
-                $notidication = new SmNotification();
-                $notidication->role_id = $student->role_id;
-                $notidication->message = app('translator')->get('lang.exam_schedule_updated');
-                $notidication->date = date('Y-m-d');
-                $notidication->user_id = $student->user_id;
-                $notidication->academic_id = getAcademicId();
-                $notidication->save();
+                $notification = new SmNotification();
+                $notification->role_id = $student->role_id;
+                $notification->message = app('translator')->get('lang.exam_schedule_updated');
+                $notification->date = date('Y-m-d');
+                $notification->user_id = $student->user_id;
+                $notification->school_id = Auth::user()->school_id;
+                $notification->academic_id = getAcademicId();
+                $notification->save();
 
                 try{
-                    $user=User::find($notidication->user_id);
-                    Notification::send($user, new StudentExamCreateNotification($notidication));
+                    $user=User::find($notification->user_id);
+                    Notification::send($user, new StudentExamCreateNotification($notification));
                 }catch (\Exception $e) {
                     Log::info($e->getMessage());
                 }
 
                 $parent = SmParent::find($student->parent_id)->first();
 
-                $notidication = new SmNotification();
-                $notidication->role_id = 3;
-                $notidication->message = app('translator')->get('lang.exam_schedule_updated_child');
-                $notidication->date = date('Y-m-d');
-                $notidication->user_id = $parent->user_id;
-                $notidication->academic_id = getAcademicId();
-                $notidication->save();
+                $notification = new SmNotification();
+                $notification->role_id = 3;
+                $notification->message = app('translator')->get('lang.exam_schedule_updated_child');
+                $notification->date = date('Y-m-d');
+                $notification->user_id = $parent->user_id;
+                $notification->school_id = Auth::user()->school_id;
+                $notification->academic_id = getAcademicId();
+                $notification->save();
 
                 try{
-                    $user=User::find($notidication->user_id);
-                    Notification::send($user, new StudentExamCreateNotification($notidication));
+                    $user=User::find($notification->user_id);
+                    Notification::send($user, new StudentExamCreateNotification($notification));
                 }catch (\Exception $e) {
                     Log::info($e->getMessage());
                 }

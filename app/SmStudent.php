@@ -232,7 +232,7 @@ class SmStudent extends Model
     public function homework()
     {
         return $this->hasMany(SmHomework::class, 'class_id', 'class_id')->where('section_id', $this->section_id)
-            ->where('evaluation_date', '=', null)->where('submission_date', '>', date('H:i:s'));
+            ->where('evaluation_date', '=', null)->where('submission_date', '>', date('Y-m-d'));
     }
 
     public function studentAttendances()

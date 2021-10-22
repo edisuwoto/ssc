@@ -55,11 +55,39 @@
                     <div class="single-meta mt-10">
                         <div class="d-flex justify-content-between">
                             <div class="name">
-                                <?php echo app('translator')->get('lang.staff_name'); ?>
+                                <b>Saldo</b>
                             </div>
                             <div class="value">
 
+                                <b><?php if(isset($staffDetails)): ?><?php echo e(number_format($staffDetails->saldo)); ?><?php endif; ?></b>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="single-meta mt-10">
+                        <div class="d-flex justify-content-between">
+                            <div class="name">
+                                NIP
+                            </div>
+                            <div class="value">
+
+                                <?php if(isset($staffDetails)): ?><?php echo e($staffDetails->nip); ?><?php endif; ?>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="single-meta mt-10">
+                        <div class="d-flex justify-content-between">
+                            <div class="name">
+                                <?php echo app('translator')->get('lang.staff_name'); ?>
+                            </div>
+                            <div class="value">
+                                <?php if(isset($staffDetails)): ?><?php echo e($staffDetails->full_name_front); ?><?php endif; ?>
+
                                 <?php if(isset($staffDetails)): ?><?php echo e($staffDetails->full_name); ?><?php endif; ?>
+
+                                <?php if(isset($staffDetails)): ?><?php echo e($staffDetails->full_name_end); ?><?php endif; ?>
 
                             </div>
                         </div>
@@ -127,19 +155,29 @@
                </div>
            </div>
        </div>
-       <div class="single-meta">
-        <div class="d-flex justify-content-between">
-            <div class="name">
-                <?php echo app('translator')->get('lang.date_of_joining'); ?>
-            </div>
-            <div class="value">
-                <?php if(isset($staffDetails)): ?>
-                    <?php echo e($staffDetails->date_of_joining != ""? dateConvert($staffDetails->date_of_joining):''); ?>
+        <div class="single-meta">
+            <div class="d-flex justify-content-between">
+                <div class="name">
+                    <?php echo app('translator')->get('lang.date_of_joining'); ?>
+                </div>
+                <div class="value">
+                    <?php if(isset($staffDetails)): ?>
+                        <?php echo e($staffDetails->date_of_joining != ""? dateConvert($staffDetails->date_of_joining):''); ?>
 
-                <?php endif; ?>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
-    </div>
+        <div class="single-meta">
+            <div class="d-flex justify-content-between">
+                <div class="name">
+                    RFID
+                </div>
+                <div class="value">
+                    <?php if(isset($staffDetails)): ?><?php echo e($staffDetails->rfid_no); ?><?php endif; ?>
+                </div>
+            </div>
+        </div>
 </div>
 </div>
 <!-- End Student Meta Information -->
@@ -164,6 +202,9 @@
         <li class="nav-item">
             <a class="nav-link <?php echo e(Session::get('staffTimeline') == 'active'? 'active':''); ?>" href="#staffTimeline" role="tab" data-toggle="tab"><?php echo app('translator')->get('lang.timeline'); ?></a>
         </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#staffJobs" role="tab" data-toggle="tab">Akademik</a>
+        </li>
         <li class="nav-item edit-button d-flex align-items-center justify-content-end">
             <a href="<?php echo e(route('editStaff',$staffDetails->id)); ?>" class="primary-btn small fix-gr-bg"><?php echo app('translator')->get('lang.edit'); ?>
             </a>
@@ -172,10 +213,88 @@
 
     <!-- Tab panes -->
     <div class="tab-content">
+        <div role="tabpanel" class="tab-pane fade" id="staffJobs">
+            <div class="white-box">
+                <h4 class="stu-sub-head">Surat Tugas, Program</h4>
+                <div class="single-info">
+                    <div class="row">
+                        <div class="col-lg-5 col-md-5">
+                            <div class="">
+                                Program
+                            </div>
+                        </div>
+                        <div class="col-lg-7 col-md-6">
+                            <div class="">
+                                Akuntansi Syari'ah, Ilmu Perpustakaan dan Informasi Islam, Sejarah Peradaban Islam
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="single-info">
+                    <div class="row">
+                        <div class="col-lg-5 col-md-5">
+                            <div class="">
+                                Jabatan Funsionalitas
+                            </div>
+                        </div>
+                        <div class="col-lg-7 col-md-6">
+                            <div class="">
+                                Dekan
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="single-info">
+                    <div class="row">
+                        <div class="col-lg-5 col-md-5">
+                            <div class="">
+                                Surat Tugas
+                            </div>
+                        </div>
+                        <div class="col-lg-7 col-md-6">
+                            <div class="">
+                                <a href="#">Lihat surat#1</a> , <a href="#">Lihat surat#2</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="single-info">
+                    <div class="row">
+                        <div class="col-lg-5 col-md-5">
+                            <div class="">
+                                Surat Perjalanan dinas
+                            </div>
+                        </div>
+                        <div class="col-lg-7 col-md-6">
+                            <div class="">
+                                <a href="#">Lihat surat#1</a> , <a href="#">Lihat surat#2</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
         <!-- Start Profile Tab -->
         <div role="tabpanel" class="tab-pane fade <?php if(Session::get('staffDocuments') != 'active' && Session::get('staffTimeline') != 'active'): ?> show active <?php endif; ?>" id="studentProfile">
             <div class="white-box">
                 <h4 class="stu-sub-head"><?php echo app('translator')->get('lang.personal'); ?> <?php echo app('translator')->get('lang.info'); ?></h4>
+                <div class="single-info">
+                    <div class="row">
+                        <div class="col-lg-5 col-md-5">
+                            <div class="">
+                                NIK
+                            </div>
+                        </div>
+                        <div class="col-lg-7 col-md-6">
+                            <div class="">
+                                <?php if(isset($staffDetails)): ?><?php echo e($staffDetails->nik); ?><?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="single-info">
                     <div class="row">
                         <div class="col-lg-5 col-md-5">
@@ -1029,6 +1148,7 @@
         </div>
 <!-- timeline form modal end-->
     </div>
+</div>
 </div>
 </section>
 <script>

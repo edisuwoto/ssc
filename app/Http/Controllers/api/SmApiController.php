@@ -12784,167 +12784,100 @@ class SmApiController extends Controller
                 $purpose = 'Others Download';
 
             }
-
-
-
             foreach ($request->available_for as $value) {
-
                 if ($value == 'admin') {
-
                     $roles = InfixRole::where('id', '=', 1) /* ->where('id', '!=', 2)->where('id', '!=', 3)->where('id', '!=', 9) */->where('academic_id', SmAcademicYear::SINGLE_SCHOOL_API_ACADEMIC_YEAR())->where(function ($q) {
-
-                $q->where('school_id', Auth::user()->school_id)->orWhere('type', 'System');
-
-            })->get();
-
+                    $q->where('school_id', Auth::user()->school_id)->orWhere('type', 'System');
+                })->get();
                     foreach ($roles as $role) {
-
-                        $staffs = SmStaff::where('role_id', $role->id)->where('academic_id', SmAcademicYear::SINGLE_SCHOOL_API_ACADEMIC_YEAR())->get();
-
+                        $staffs = SmStaff::where('role_id', $role->id)
+                        ->where('academic_id', SmAcademicYear::SINGLE_SCHOOL_API_ACADEMIC_YEAR())
+                        ->get();
+                        
                         foreach ($staffs as $staff) {
-
                             $notification = new SmNotification;
-
                             $notification->user_id = $staff->user_id;
-
                             $notification->role_id = $role->id;
-
                             if ($request->content_type == 'as') {
-
                                 $notification->url = 'assignment-list';
-
                             } elseif ($request->content_type == 'st') {
-
                                 $notification->url = 'study-metarial-list';
-
                             } elseif ($request->content_type == 'sy') {
-
                                 $notification->url = 'syllabus-list';
-
                             } elseif ($request->content_type == 'ot') {
-
                                 $notification->url = 'other-download-list';
-
                             }
-
                             $notification->date = date('Y-m-d');
-
+                            $notification->school_id = Auth::user()->school_id;
+                            $notification->academic_id = SmAcademicYear::SINGLE_SCHOOL_API_ACADEMIC_YEAR();
                             $notification->message = $purpose . ' updated';
-
                             $notification->save();
-
                         }
-
                     }
-
                 }
-
                 if ($value == 'student') {
-
                     if (isset($request->all_classes)) {
-
-                        $students = SmStudent::select('id', 'user_id')->where('academic_id', SmAcademicYear::SINGLE_SCHOOL_API_ACADEMIC_YEAR())->get();
+                        $students = SmStudent::select('id', 'user_id')
+                        ->where('academic_id', SmAcademicYear::SINGLE_SCHOOL_API_ACADEMIC_YEAR())
+                        ->get();
 
                         foreach ($students as $student) {
-
                             $notification = new SmNotification;
-
                             $notification->user_id = $student->id;
-
                             $notification->role_id = 2;
-
                             if ($request->content_type == 'as') {
-
                                 $notification->url = 'student-assignment';
-
                             } elseif ($request->content_type == 'st') {
-
                                 $notification->url = 'student-study-material';
-
                             } elseif ($request->content_type == 'sy') {
-
                                 $notification->url = 'student-syllabus';
-
                             } elseif ($request->content_type == 'ot') {
-
                                 $notification->url = 'student-others-download';
-
                             }
-
                             $notification->date = date('Y-m-d');
-
+                            $notification->school_id = Auth::user()->school_id;
+                            $notification->academic_id = SmAcademicYear::SINGLE_SCHOOL_API_ACADEMIC_YEAR();
                             $notification->message = $purpose . ' updated';
-
                             $notification->save();
-
                         }
-
                     } else {
-
-                        $students = SmStudent::select('id')->where('class_id', $request->class)->where('section_id', $request->section)->where('academic_id', SmAcademicYear::SINGLE_SCHOOL_API_ACADEMIC_YEAR())->get();
+                        $students = SmStudent::select('id')->where('class_id', $request->class)
+                        ->where('section_id', $request->section)
+                        ->where('academic_id', SmAcademicYear::SINGLE_SCHOOL_API_ACADEMIC_YEAR())
+                        ->get();
 
                         foreach ($students as $student) {
-
                             $notification = new SmNotification;
-
                             $notification->user_id = $student->id;
-
                             $notification->role_id = 2;
-
                             if ($request->content_type == 'as') {
-
                                 $notification->url = 'student-assignment';
-
                             } elseif ($request->content_type == 'st') {
-
                                 $notification->url = 'student-study-material';
-
                             } elseif ($request->content_type == 'sy') {
-
                                 $notification->url = 'student-syllabus';
-
                             } elseif ($request->content_type == 'ot') {
-
                                 $notification->url = 'student-others-download';
-
                             }
-
                             $notification->date = date('Y-m-d');
-
+                            $notification->school_id = Auth::user()->school_id;
+                            $notification->academic_id = SmAcademicYear::SINGLE_SCHOOL_API_ACADEMIC_YEAR();
                             $notification->message = $purpose . ' updated';
-
                             $notification->save();
-
                         }
-
                     }
-
                 }
-
             }
-
-
-
             if ($results) {
-
                 Toastr::success('Operation successful', 'Success');
-
                 return redirect()->back();
-
             } else {
-
                 Toastr::error('Operation Failed', 'Failed');
-
                 return redirect()->back();
-
             }
-
         } catch (\Exception $e) {
-
            return ApiBaseMethod::sendError('Error.', $e->getMessage());
-
         }
-
     }
 
     public function deleteUploadContent(Request $request, $id)
@@ -22296,167 +22229,75 @@ class SmApiController extends Controller
     }
 
     public function updateApproveLeave(Request $request)
-
     {
-
-
-
-
-
         try {
-
-
-
-
-
             $leave_request_data = SmLeaveRequest::find($request->id);
-
             $staff_id = $leave_request_data->staff_id;
-
             $role_id = $leave_request_data->role_id;
-
             $leave_request_data->approve_status = $request->approve_status;
-
             $result = $leave_request_data->save();
-
-
-
-
-
             $notification = new SmNotification;
-
             $notification->user_id = $leave_request_data->student->id;
-
             $notification->role_id = $role_id;
-
             $notification->date = date('Y-m-d');
-
+            $notification->school_id = Auth::user()->school_id;
+            $notification->academic_id = SmAcademicYear::SINGLE_SCHOOL_API_ACADEMIC_YEAR();
             $notification->message = 'Leave status updated';
-
             $notification->save();
-
-
-
-
-
             if (ApiBaseMethod::checkUrl($request->fullUrl())) {
-
                 if ($result) {
-
                     return ApiBaseMethod::sendResponse(null, 'Leave Request has been updates successfully.');
-
                 } else {
-
                     return ApiBaseMethod::sendError('Something went wrong, please try again.');
-
                 }
-
             } else {
-
                 if ($result) {
-
                     Toastr::success('Operation successful', 'Success');
-
                     return redirect('approve-leave');
-
                 } else {
-
                     Toastr::error('Operation Failed', 'Failed');
-
                     return redirect()->back();
-
                 }
-
             }
-
         } catch (\Exception $e) {
-
            return ApiBaseMethod::sendError('Error.', $e->getMessage());
-
         }
-
     }
 
     public function saas_updateApproveLeave(Request $request, $school_id)
-
     {
-
-
-
-
-
         try {
-
-
-
-
-
             $leave_request_data = SmLeaveRequest::where('school_id',$school_id)->find($request->id);
-
             $staff_id = $leave_request_data->staff_id;
-
             $role_id = $leave_request_data->role_id;
-
             $leave_request_data->approve_status = $request->approve_status;
-
             $result = $leave_request_data->save();
-
-
-
-
-
             $notification = new SmNotification;
-
             $notification->user_id = $leave_request_data->student->id;
-
             $notification->role_id = $role_id;
-
             $notification->date = date('Y-m-d');
-
+            $notification->school_id = Auth::user()->school_id;
+            $notification->academic_id = SmAcademicYear::SINGLE_SCHOOL_API_ACADEMIC_YEAR();
             $notification->message = 'Leave status updated';
-
             $notification->save();
-
-
-
-
-
             if (ApiBaseMethod::checkUrl($request->fullUrl())) {
-
                 if ($result) {
-
                     return ApiBaseMethod::sendResponse(null, 'Leave Request has been updates successfully.');
-
                 } else {
-
                     return ApiBaseMethod::sendError('Something went wrong, please try again.');
-
                 }
-
             } else {
-
                 if ($result) {
-
                     Toastr::success('Operation successful', 'Success');
-
                     return redirect('approve-leave');
-
                 } else {
-
                     Toastr::error('Operation Failed', 'Failed');
-
                     return redirect()->back();
-
                 }
-
             }
-
         } catch (\Exception $e) {
-
            return ApiBaseMethod::sendError('Error.', $e->getMessage());
-
         }
-
     }
 
     public function viewLeaveDetails(Request $request, $id)
@@ -41965,6 +41806,7 @@ class SmApiController extends Controller
             $notidication->date = date('Y-m-d');
             $notidication->user_id = $parent->user_id;
             $notidication->url = "homework-list";
+            $notification->school_id = Auth::user()->school_id;
             $notidication->academic_id = getAcademicId();
             $notidication->save();
 
@@ -43113,110 +42955,68 @@ class SmApiController extends Controller
         // foreach ($request->input('available_for') as $value) {
 
         if ($request->input('available_for') == 'admin') {
-
             $roles = InfixRole::where('id', '!=', 1)->where('id', '!=', 2)->where('id', '!=', 3)->where('id', '!=', 9)->where(function ($q) {
-
                 $q->where('school_id', Auth::user()->school_id)->orWhere('type', 'System');
-
             })->get();
 
-
-
             foreach ($roles as $role) {
-
                 $staffs = SmStaff::where('role_id', $role->id)->get();
 
                 foreach ($staffs as $staff) {
-
                     $notification = new SmNotification;
-
                     $notification->user_id = $staff->id;
-
                     $notification->role_id = $role->id;
-
                     $notification->date = date('Y-m-d');
-
+                    $notification->school_id = Auth::user()->school_id;
+                    $notification->academic_id = SmAcademicYear::SINGLE_SCHOOL_API_ACADEMIC_YEAR();
                     $notification->message =  $purpose . ' '.app('translator')->get('lang.updated');
-
                     $notification->save();
 
                     $user=User::find($notification->user_id);
                     Notification::send($user, new StudyMeterialCreatedNotification($notification));
-
                 }
-
             }
-
         }
-
         if ($request->input('available_for') == 'student') {
-
             if (!empty($request->input('all_classes'))) {
-
                 $students = SmStudent::select('id')->get();
-
                 foreach ($students as $student) {
-
                     $notification = new SmNotification;
-
                     $notification->user_id = $student->id;
-
                     $notification->role_id = 2;
-
                     $notification->date = date('Y-m-d');
-
+                    $notification->school_id = Auth::user()->school_id;
+                    $notification->academic_id = SmAcademicYear::SINGLE_SCHOOL_API_ACADEMIC_YEAR();
                     $notification->message =  $purpose . ' '.app('translator')->get('lang.updated');
-
                     $notification->save();
-
                     $user=User::find($notification->user_id);
                     Notification::send($user, new StudyMeterialCreatedNotification($notification));
-
                 }
-
             } else {
-
-                $students = SmStudent::select('id')->where('class_id', $request->input('class'))->where('section_id', $request->input('section'))->get();
+                $students = SmStudent::select('id')
+                ->where('class_id', $request->input('class'))
+                ->where('section_id', $request->input('section'))
+                ->get();
 
                 foreach ($students as $student) {
-
                     $notification = new SmNotification;
-
                     $notification->user_id = $student->id;
-
                     $notification->role_id = 2;
-
                     $notification->date = date('Y-m-d');
-
+                    $notification->school_id = Auth::user()->school_id;
+                    $notification->academic_id = SmAcademicYear::SINGLE_SCHOOL_API_ACADEMIC_YEAR();
                     $notification->message =  $purpose . ' '.app('translator')->get('lang.updated');
-
                     $notification->save();
-
                     $user=User::find($notification->user_id);
                     Notification::send($user, new StudyMeterialCreatedNotification($notification));
-
                 }
-
             }
-
         }
-
         // }
-
-
-
         if (ApiBaseMethod::checkUrl($request->fullUrl())) {
-
-
-
             $data = '';
-
-
-
             return ApiBaseMethod::sendResponse($data, null);
-
         }
-
     }
 
     public function saas_uploadContent(Request $request)
@@ -43382,101 +43182,63 @@ class SmApiController extends Controller
         // foreach ($request->input('available_for') as $value) {
 
         if ($request->input('available_for') == 'admin') {
-
             $roles = InfixRole::where('id', '!=', 1)->where('id', '!=', 2)->where('id', '!=', 3)->where('id', '!=', 9)->where(function ($q) {
-
                 $q->where('school_id', Auth::user()->school_id)->orWhere('type', 'System');
-
             })->get();
 
-
-
             foreach ($roles as $role) {
-
                 $staffs = SmStaff::where('role_id', $role->id)->get();
 
                 foreach ($staffs as $staff) {
-
                     $notification = new SmNotification;
-
                     $notification->user_id = $staff->id;
-
                     $notification->role_id = $role->id;
-
                     $notification->date = date('Y-m-d');
-
+                    $notification->school_id = Auth::user()->school_id;
+                    $notification->academic_id = SmAcademicYear::SINGLE_SCHOOL_API_ACADEMIC_YEAR();
                     $notification->message = $purpose . ' updated';
-
                     $notification->save();
-
                 }
-
             }
-
         }
 
         if ($request->input('available_for') == 'student') {
-
             if (!empty($request->input('all_classes'))) {
-
                 $students = SmStudent::select('id')->get();
 
                 foreach ($students as $student) {
-
                     $notification = new SmNotification;
-
                     $notification->user_id = $student->id;
-
                     $notification->role_id = 2;
-
                     $notification->date = date('Y-m-d');
-
+                    $notification->school_id = Auth::user()->school_id;
+                    $notification->academic_id = SmAcademicYear::SINGLE_SCHOOL_API_ACADEMIC_YEAR();
                     $notification->message = $purpose . ' updated';
-
                     $notification->save();
-
                 }
-
             } else {
-
-                $students = SmStudent::select('id')->where('class_id', $request->input('class'))->where('section_id', $request->input('section'))->get();
+                $students = SmStudent::select('id')
+                ->where('class_id', $request->input('class'))
+                ->where('section_id', $request->input('section'))
+                ->get();
 
                 foreach ($students as $student) {
-
                     $notification = new SmNotification;
-
                     $notification->user_id = $student->id;
-
                     $notification->role_id = 2;
-
                     $notification->date = date('Y-m-d');
-
+                    $notification->school_id = Auth::user()->school_id;
+                    $notification->academic_id = SmAcademicYear::SINGLE_SCHOOL_API_ACADEMIC_YEAR();
                     $notification->message = $purpose . ' updated';
-
                     $notification->save();
-
                 }
-
             }
-
         }
-
         // }
-
-
-
         if (ApiBaseMethod::checkUrl($request->fullUrl())) {
-
-
-
             $data = '';
-
-
-
             return ApiBaseMethod::sendResponse($data, null);
-
         }
-
     }
 
     public function contentList(Request $request)
@@ -44136,105 +43898,57 @@ class SmApiController extends Controller
 
 
         try {
-
             //$leave_request = DB::table('sm_leave_requests')->where('id', $id)->first();
-
             $leave_request_data = SmLeaveRequest::find($request->id);
-
             $staff_id = $leave_request_data->staff_id;
-
             $role_id = $leave_request_data->role_id;
-
             $leave_request_data->approve_status = $request->status;
-
             $result = $leave_request_data->save();
 
-
-
-
-
             $notification = new SmNotification;
-
             $notification->user_id = $staff_id;
-
             $notification->role_id = $role_id;
-
             $notification->date = date('Y-m-d');
-
+            $notification->school_id = Auth::user()->school_id;
+            $notification->academic_id = SmAcademicYear::SINGLE_SCHOOL_API_ACADEMIC_YEAR();
             $notification->message = 'Leave status updated';
-
             $notification->save();
 
-
-
             if (ApiBaseMethod::checkUrl($request->fullUrl())) {
-
                 $data = '';
-
                 return ApiBaseMethod::sendResponse($data, null);
-
             }
-
         } catch (\Exception $e) {
-
            return ApiBaseMethod::sendError('Error.', $e->getMessage());
-
         }
-
     }
 
     public function saas_updateLeave(Request $request,$school_id)
-
     {
-
-
-
         try {
-
             //$leave_request = DB::table('sm_leave_requests')->where('id', $id)->first();
-
             $leave_request_data = SmLeaveRequest::where('school_id',$school_id)->find($request->id);
-
             $staff_id = $leave_request_data->staff_id;
-
             $role_id = $leave_request_data->role_id;
-
             $leave_request_data->approve_status = $request->status;
-
             $result = $leave_request_data->save();
 
-
-
-
-
             $notification = new SmNotification;
-
             $notification->user_id = $staff_id;
-
             $notification->role_id = $role_id;
-
             $notification->date = date('Y-m-d');
-
+            $notification->school_id = Auth::user()->school_id;
+            $notification->academic_id = SmAcademicYear::SINGLE_SCHOOL_API_ACADEMIC_YEAR();
             $notification->message = 'Leave status updated';
-
             $notification->save();
 
-
-
             if (ApiBaseMethod::checkUrl($request->fullUrl())) {
-
                 $data = '';
-
                 return ApiBaseMethod::sendResponse($data, null);
-
             }
-
         } catch (\Exception $e) {
-
            return ApiBaseMethod::sendError('Error.', $e->getMessage());
-
         }
-
     }
 
     public function delete_Content(Request $request, $id)

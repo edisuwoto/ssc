@@ -22,6 +22,7 @@ class CreateSidebarsTable extends Migration
             
             $table->integer('parent_id')->nullable()->default(0);
             $table->integer('child_id')->nullable()->default(0);
+            $table->integer('orderby')->nullable()->default(0);
 
           
             $table->string('lan_name',50)->nullable();

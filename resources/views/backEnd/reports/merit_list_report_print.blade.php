@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -293,16 +294,6 @@
         }
     </style>
 </head>
-@php 
-    $generalSetting= App\SmGeneralSettings::find(1); 
-    if(!empty($generalSetting)){
-        $school_name =$generalSetting->school_name;
-        $site_title =$generalSetting->site_title;
-        $school_code =$generalSetting->school_code;
-        $address =$generalSetting->address;
-        $phone =$generalSetting->phone; 
-    } 
-@endphp
 {{-- <script>
     var is_chrome = function () { return Boolean(window.chrome); }
     if(is_chrome) 
@@ -325,11 +316,11 @@
                         <thead>
                             <td>
                                 <div class="logo_img">
-                                    <div class="thumb_logo"><img  src="{{asset('/')}}{{generalSetting()->logo }}" alt="{{$school_name}}"></div>
+                                    <div class="thumb_logo"><img  src="{{asset('/')}}{{generalSetting()->logo}}" alt="{{generalSetting()->school_name}}"></div>
                                     <div class="company_info">
                                         <h3>{{isset(generalSetting()->school_name)?generalSetting()->school_name:'Infix School Management ERP'}} </h3>
                                         <p>{{isset(generalSetting()->address)?generalSetting()->address:'Infix School Address'}}</p>
-                                        <p>@lang('lang.email'):  {{isset($email)?$email:'admin@demo.com'}} ,   @lang('lang.phone'):  {{isset(generalSetting()->phone)?generalSetting()->phone:'admin@demo.com'}} </p>
+                                        <p>@lang('lang.email'):  {{isset(generalSetting()->email)?generalSetting()->email:'admin@demo.com'}},   @lang('lang.phone'):  {{isset(generalSetting()->phone)?generalSetting()->phone:'+8801841412141'}} </p>
                                     </div>
                                 </div>
                             </td>
@@ -385,6 +376,9 @@
                 </tbody>
             </table>
 
+            @php
+                $subject_mark= null;
+            @endphp
             <table class="table border_table gray_header_table">
                 <thead>
                   <tr>
@@ -394,6 +388,9 @@
                     <th>@lang('lang.position')</th>
                     {{-- <th>@lang('lang.obtained_marks')</th> --}}
                     <th>@lang('lang.total_mark')</th>
+                    @foreach($subjectlist as $subject)
+                        <th>{{$subject}}</th>
+                    @endforeach
                     @if (isset($optional_subject_setup))
                         <th>@lang('lang.gpa')
                             <hr>
@@ -403,9 +400,6 @@
                     @else
                         <th>@lang('lang.gpa')</th>
                     @endif
-                    @foreach($subjectlist as $subject)
-                        <th>{{$subject}}</th>
-                    @endforeach
                   </tr>
                 </thead>
                 <tbody>
@@ -418,6 +412,7 @@
                         $count=0;
                         $additioncheck=[];
                         $subject_mark=[];
+                        $main_subject_total_gpa= 0;
                     @endphp
                     @foreach($markslist as $mark)   
                         @if(App\SmOptionalSubjectAssign::is_optional_subject($row->student_id,$get_subject_id[$count]))
@@ -444,6 +439,22 @@
                         <td>{{$row->studentinfo->roll_no}}</td>
                         <td>{{$key+1}}</td>
                         <td>{{$row->total_marks}}</td>
+                        @if(!empty($markslist))
+                                @foreach ($markslist as $key => $subject_mark)
+                                @php
+                                    $total_student_mark = $total_student_mark + $subject_mark;
+                                    $total = $total + $subject_total_mark;
+                                    $subject_id= $get_subject_id[$key];
+                                    $total_subject= count($get_subject_id);
+                                    $result = markGpa(@subjectPercentageMark($subject_mark , @subjectFullMark($row->exam_id, $subject_id)));
+                                    $main_subject_total_gpa += $result->gpa;
+                                @endphp
+                                <td>{{!empty($subject_mark)? $subject_mark:0}}</td>
+                            @endforeach
+                            @php
+                                $total_gpa= $main_subject_total_gpa/$total_subject;
+                            @endphp
+                        @endif
                         @if (isset($optional_subject_setup))
                             <td>
                                 <?php
@@ -546,12 +557,7 @@
                                 </td>
                             @endif
                         @else
-                            <td>{{$row->gpa_point}}</td> 
-                        @endif
-                        @if(!empty($markslist))
-                            @foreach($markslist as $mark)
-                                <td> {{!empty($mark)?$mark:0}}</td> 
-                            @endforeach
+                            <td>{{!empty($total_gpa)? number_format($total_gpa, 2, '.', '') :0}}</td>
                         @endif
                      </tr> 
                     @endforeach
@@ -562,4 +568,3 @@
     </div>
 </body>
 </html>
-    

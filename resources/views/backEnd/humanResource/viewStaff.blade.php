@@ -57,11 +57,39 @@
                     <div class="single-meta mt-10">
                         <div class="d-flex justify-content-between">
                             <div class="name">
-                                @lang('lang.staff_name')
+                                <b>Saldo</b>
                             </div>
                             <div class="value">
 
+                                <b>@if(isset($staffDetails)){{number_format($staffDetails->saldo)}}@endif</b>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="single-meta mt-10">
+                        <div class="d-flex justify-content-between">
+                            <div class="name">
+                                NIP
+                            </div>
+                            <div class="value">
+
+                                @if(isset($staffDetails)){{$staffDetails->nip}}@endif
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="single-meta mt-10">
+                        <div class="d-flex justify-content-between">
+                            <div class="name">
+                                @lang('lang.staff_name')
+                            </div>
+                            <div class="value">
+                                @if(isset($staffDetails)){{$staffDetails->full_name_front}}@endif
+
                                 @if(isset($staffDetails)){{$staffDetails->full_name}}@endif
+
+                                @if(isset($staffDetails)){{$staffDetails->full_name_end}}@endif
 
                             </div>
                         </div>
@@ -129,18 +157,28 @@
                </div>
            </div>
        </div>
-       <div class="single-meta">
-        <div class="d-flex justify-content-between">
-            <div class="name">
-                @lang('lang.date_of_joining')
-            </div>
-            <div class="value">
-                @if(isset($staffDetails))
-                    {{$staffDetails->date_of_joining != ""? dateConvert($staffDetails->date_of_joining):''}}
-                @endif
+        <div class="single-meta">
+            <div class="d-flex justify-content-between">
+                <div class="name">
+                    @lang('lang.date_of_joining')
+                </div>
+                <div class="value">
+                    @if(isset($staffDetails))
+                        {{$staffDetails->date_of_joining != ""? dateConvert($staffDetails->date_of_joining):''}}
+                    @endif
+                </div>
             </div>
         </div>
-    </div>
+        <div class="single-meta">
+            <div class="d-flex justify-content-between">
+                <div class="name">
+                    RFID
+                </div>
+                <div class="value">
+                    @if(isset($staffDetails)){{$staffDetails->rfid_no}}@endif
+                </div>
+            </div>
+        </div>
 </div>
 </div>
 <!-- End Student Meta Information -->
@@ -165,6 +203,9 @@
         <li class="nav-item">
             <a class="nav-link {{Session::get('staffTimeline') == 'active'? 'active':''}}" href="#staffTimeline" role="tab" data-toggle="tab">@lang('lang.timeline')</a>
         </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#staffJobs" role="tab" data-toggle="tab">Akademik</a>
+        </li>
         <li class="nav-item edit-button d-flex align-items-center justify-content-end">
             <a href="{{route('editStaff',$staffDetails->id)}}" class="primary-btn small fix-gr-bg">@lang('lang.edit')
             </a>
@@ -173,10 +214,88 @@
 
     <!-- Tab panes -->
     <div class="tab-content">
+        <div role="tabpanel" class="tab-pane fade" id="staffJobs">
+            <div class="white-box">
+                <h4 class="stu-sub-head">Surat Tugas, Program</h4>
+                <div class="single-info">
+                    <div class="row">
+                        <div class="col-lg-5 col-md-5">
+                            <div class="">
+                                Program
+                            </div>
+                        </div>
+                        <div class="col-lg-7 col-md-6">
+                            <div class="">
+                                Akuntansi Syari'ah, Ilmu Perpustakaan dan Informasi Islam, Sejarah Peradaban Islam
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="single-info">
+                    <div class="row">
+                        <div class="col-lg-5 col-md-5">
+                            <div class="">
+                                Jabatan Funsionalitas
+                            </div>
+                        </div>
+                        <div class="col-lg-7 col-md-6">
+                            <div class="">
+                                Dekan
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="single-info">
+                    <div class="row">
+                        <div class="col-lg-5 col-md-5">
+                            <div class="">
+                                Surat Tugas
+                            </div>
+                        </div>
+                        <div class="col-lg-7 col-md-6">
+                            <div class="">
+                                <a href="#">Lihat surat#1</a> , <a href="#">Lihat surat#2</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="single-info">
+                    <div class="row">
+                        <div class="col-lg-5 col-md-5">
+                            <div class="">
+                                Surat Perjalanan dinas
+                            </div>
+                        </div>
+                        <div class="col-lg-7 col-md-6">
+                            <div class="">
+                                <a href="#">Lihat surat#1</a> , <a href="#">Lihat surat#2</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
         <!-- Start Profile Tab -->
         <div role="tabpanel" class="tab-pane fade @if (Session::get('staffDocuments') != 'active' && Session::get('staffTimeline') != 'active') show active @endif" id="studentProfile">
             <div class="white-box">
                 <h4 class="stu-sub-head">@lang('lang.personal') @lang('lang.info')</h4>
+                <div class="single-info">
+                    <div class="row">
+                        <div class="col-lg-5 col-md-5">
+                            <div class="">
+                                NIK
+                            </div>
+                        </div>
+                        <div class="col-lg-7 col-md-6">
+                            <div class="">
+                                @if(isset($staffDetails)){{$staffDetails->nik}}@endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="single-info">
                     <div class="row">
                         <div class="col-lg-5 col-md-5">
@@ -1018,6 +1137,7 @@
         </div>
 <!-- timeline form modal end-->
     </div>
+</div>
 </div>
 </section>
 <script>

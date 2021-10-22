@@ -20,10 +20,13 @@ class XSS
         {
              $input = $request->all();
             array_walk_recursive($input, function(&$input) {
-                $str  = $input;  
-                $searchVal = array("<script>", "</script>"); 
-                $replaceVal = array(" ", " "); 
-                $input = str_replace($searchVal, $replaceVal, $str); 
+                if ($input) {
+                    $str  = $input;
+                    $searchVal = array("<script>", "</script>");
+                    $replaceVal = array(" ", " ");
+                    $input = str_replace($searchVal, $replaceVal, $str);
+                }
+
             });
             $request->merge($input);
         return $next($request);

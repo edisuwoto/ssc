@@ -53,62 +53,60 @@ class CreateSmStudentsTable extends Migration
             $table->tinyInteger('active_status')->default(1);
             $table->text('custom_field')->nullable();
             $table->string('custom_field_form_name')->nullable();
+
             $table->timestamps();
 
             $table->integer('bloodgroup_id')->nullable()->unsigned();
-            $table->foreign('bloodgroup_id')->references('id')->on('sm_base_setups')->onDelete('cascade');
+            $table->foreign('bloodgroup_id')->references('id')->on('sm_base_setups')->onDelete('set null');
 
             $table->integer('religion_id')->nullable()->unsigned();
-            $table->foreign('religion_id')->references('id')->on('sm_base_setups')->onDelete('cascade');
+            $table->foreign('religion_id')->references('id')->on('sm_base_setups')->onDelete('set null');
 
             $table->integer('route_list_id')->nullable()->unsigned();
-            $table->foreign('route_list_id')->references('id')->on('sm_routes')->onDelete('cascade');
+            $table->foreign('route_list_id')->references('id')->on('sm_routes')->onDelete('set null');
 
             $table->integer('dormitory_id')->nullable()->unsigned();
-            $table->foreign('dormitory_id')->references('id')->on('sm_dormitory_lists')->onDelete('cascade');
+            $table->foreign('dormitory_id')->references('id')->on('sm_dormitory_lists')->onDelete('set null');
 
             $table->integer('vechile_id')->nullable()->unsigned();
-            $table->foreign('vechile_id')->references('id')->on('sm_vehicles')->onDelete('cascade');
+            $table->foreign('vechile_id')->references('id')->on('sm_vehicles')->onDelete('set null');
 
             $table->integer('room_id')->nullable()->unsigned();
-            $table->foreign('room_id')->references('id')->on('sm_room_lists')->onDelete('cascade');
+            $table->foreign('room_id')->references('id')->on('sm_room_lists')->onDelete('set null');
 
             $table->integer('student_category_id')->nullable()->unsigned();
-            $table->foreign('student_category_id')->references('id')->on('sm_student_categories')->onDelete('cascade');
+            $table->foreign('student_category_id')->references('id')->on('sm_student_categories')->onDelete('set null');
+
             $table->integer('student_group_id')->nullable()->unsigned();
-            $table->foreign('student_group_id')->references('id')->on('sm_student_groups')->onDelete('cascade');
+            $table->foreign('student_group_id')->references('id')->on('sm_student_groups')->onDelete('set null');
 
-            $table->integer('class_id')->unsigned();
-            $table->foreign('class_id')->references('id')->on('sm_classes')->onDelete('cascade');
+            $table->integer('class_id')->nullable()->unsigned();
+            $table->foreign('class_id')->references('id')->on('sm_classes')->onDelete('set null');
 
-            $table->integer('section_id')->unsigned();
-            $table->foreign('section_id')->references('id')->on('sm_sections')->onDelete('cascade');
+            $table->integer('section_id')->nullable()->unsigned();
+            $table->foreign('section_id')->references('id')->on('sm_sections')->onDelete('set null');
 
-            $table->integer('session_id')->unsigned();
-            $table->foreign('session_id')->references('id')->on('sm_academic_years')->onDelete('cascade');
+            $table->integer('session_id')->nullable()->unsigned();
+            $table->foreign('session_id')->references('id')->on('sm_academic_years')->onDelete('set null');
 
-            $table->integer('parent_id')->nullable()->unsigned();
+            $table->integer('parent_id')->nullable()->nullable()->unsigned();
             $table->foreign('parent_id')->references('id')->on('sm_parents')->onDelete('cascade');
 
-            $table->integer('user_id')->nullable()->unsigned();
+            $table->integer('user_id')->nullable()->nullable()->unsigned();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
 
-            $table->integer('role_id')->unsigned();
+            $table->integer('role_id')->nullable()->unsigned();
             $table->foreign('role_id')->references('id')->on('infix_roles')->onDelete('cascade');
 
             $table->integer('gender_id')->nullable()->unsigned();
-            $table->foreign('gender_id')->references('id')->on('sm_base_setups')->onDelete('cascade');
+            $table->foreign('gender_id')->references('id')->on('sm_base_setups')->onDelete('set null');
 
 
-            $table->integer('created_by')->nullable()->default(1)->unsigned();
-
-            $table->integer('updated_by')->nullable()->default(1)->unsigned();
-
-            $table->integer('school_id')->nullable()->default(1)->unsigned();
+            $table->integer('school_id')->default(1)->unsigned();
             $table->foreign('school_id')->references('id')->on('sm_schools')->onDelete('cascade');
-            
+
             $table->integer('academic_id')->nullable()->default(1)->unsigned();
-            $table->foreign('academic_id')->references('id')->on('sm_academic_years')->onDelete('cascade');
+            $table->foreign('academic_id')->references('id')->on('sm_academic_years')->onDelete('set null');
         });
     }
 
@@ -119,6 +117,25 @@ class CreateSmStudentsTable extends Migration
      */
     public function down()
     {
+        Schema::table('sm_students', function (Blueprint $table) {
+            $table->dropForeign(['bloodgroup_id']);
+            $table->dropForeign(['religion_id']);
+            $table->dropForeign(['route_list_id']);
+            $table->dropForeign(['dormitory_id']);
+            $table->dropForeign(['vechile_id']);
+            $table->dropForeign(['room_id']);
+            $table->dropForeign(['student_category_id']);
+            $table->dropForeign(['student_group_id']);
+            $table->dropForeign(['class_id']);
+            $table->dropForeign(['section_id']);
+            $table->dropForeign(['session_id']);
+            $table->dropForeign(['parent_id']);
+            $table->dropForeign(['user_id']);
+            $table->dropForeign(['role_id']);
+            $table->dropForeign(['gender_id']);
+            $table->dropForeign(['school_id']);
+            $table->dropForeign(['academic_id']);
+        });
         Schema::dropIfExists('sm_students');
     }
 }

@@ -139,7 +139,6 @@
         $("#classSelectStudent").on("change", function() {
             var url = $("#url").val();
             var i = 0;
-            console.log(url);
 
             var formData = {
                 id: $(this).val(),
@@ -157,12 +156,15 @@
                 },
                 success: function(data) {
 
-                    var a = "";
+                    $("#sectionSelectStudent").empty().append(
+                        $("<option>", {
+                            value:  '',
+                            text: window.jsLang('select_section') + ' *',
+                        })
+                    );
                     $.each(data, function(i, item) {
-                        if (item.length) {
-                            $("#sectionSelectStudent").find("option").not(":first").remove();
-                            $("#sectionStudentDiv ul").find("li").not(":first").remove();
 
+                        if (item.length) {
                             $.each(item, function(i, section) {
                                 $("#sectionSelectStudent").append(
                                     $("<option>", {
@@ -170,21 +172,13 @@
                                         text: section.section_name,
                                     })
                                 );
-                                $("#sectionStudentDiv ul").append(
-                                    "<li data-value='" +
-                                    section.id +
-                                    "' class='option'>" +
-                                    section.section_name +
-                                    "</li>"
-                                );
+
                             });
-                        } else {
-                            $("#sectionStudentDiv .current").html("SECTION *");
-                            $("#sectionSelectStudent").find("option").not(":first").remove();
-                            $("#sectionStudentDiv ul").find("li").not(":first").remove();
                         }
                     });
-                    console.log(a);
+                    $("#sectionSelectStudent").trigger('change').niceSelect('update')
+
+
                 },
                 error: function(data) {
                     console.log("Error:", data);
@@ -2920,24 +2914,25 @@
             };
 
             // get roll for student
-            $.ajax({
-                type: "GET",
-                data: formData,
-                dataType: "json",
-                url: url + "/" + "ajax-get-roll-id",
-                success: function(data) {
-                    console.log(data);
-
-                    $("#student_form #roll_number").val(data);
-
-                    if ($("#student_form #roll_number").val() != "") {
-                        $("#student_form #roll_number").focus();
-                    }
-                },
-                error: function(data) {
-                    console.log("Error:", data);
-                },
-            });
+            if($(this).val()){
+                $.ajax({
+                    type: "GET",
+                    data: formData,
+                    dataType: "json",
+                    url: url + "/" + "ajax-get-roll-id",
+                    success: function(data) {
+                        $("#student_form #roll_number").val(data);
+                        if ($("#student_form #roll_number").val() != "") {
+                            $("#student_form #roll_number").focus();
+                        }
+                    },
+                    error: function(data) {
+                        console.log("Error:", data);
+                    },
+                });
+            } else{
+                $("#student_form #roll_number").val('').prop("readonly", true);
+            }
         }
     );
 
@@ -5365,6 +5360,7 @@
                     id: $(this).val(),
                 };
 
+
                 // get section for student
                 $.ajax({
                     type: "GET",
@@ -5378,14 +5374,14 @@
                     },
 
                     success: function(data) {
-                        console.log(data);
-                        var a = "";
-                        // $.each(data[0], function (i, item) {
+                        $("#classSelectStudent").empty().append(
+                            $("<option>", {
+                                value:  '',
+                                text: window.jsLang('select_class') + ' *',
+                            })
+                        );
 
                         if (data[0].length) {
-                            $("#classSelectStudent").find("option").not(":first").remove();
-                            $("#class-div ul").find("li").not(":first").remove();
-
                             $.each(data[0], function(i, className) {
                                 $("#classSelectStudent").append(
                                     $("<option>", {
@@ -5393,20 +5389,10 @@
                                         text: className.class_name,
                                     })
                                 );
-
-                                $("#class-div ul").append(
-                                    "<li data-value='" +
-                                    className.id +
-                                    "' class='option'>" +
-                                    className.class_name +
-                                    "</li>"
-                                );
                             });
-                        } else {
-                            $("#class-div .current").html("SELECT CLASS *");
-                            $("#classSelectStudent").find("option").not(":first").remove();
-                            $("#class-div ul").find("li").not(":first").remove();
                         }
+                        $('#classSelectStudent').niceSelect('update');
+                        $('#classSelectStudent').trigger('change');
                     },
                     error: function(data) {
                         console.log('Error:', data);

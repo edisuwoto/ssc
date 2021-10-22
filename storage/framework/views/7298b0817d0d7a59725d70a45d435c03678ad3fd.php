@@ -29,6 +29,7 @@ App::setLocale(getUserLanguage());
         display: flex;
         flex-wrap: wrap;
         justify-content: space-between;
+        width: 100%;
     }
 
     .loginButton{
@@ -163,7 +164,7 @@ App::setLocale(getUserLanguage());
                                                 ?>
                                                 <input type="hidden" name="school_id" value="1">
                                                 <input type="hidden" name="email" value="<?php echo e($email); ?>">
-                                                <input type="hidden" name="password" value="123456">
+                                                <input type="hidden" name="auto_login" value="true">
                                                 <button type="submit" class="white get-login-access">Super Admin</button>
                                             </form>
 
@@ -182,7 +183,7 @@ App::setLocale(getUserLanguage());
                                                 $email = $user_5->email; ?>
                                                 <input type="hidden" name="school_id" value="1">
                                                 <input type="hidden" name="email" value="<?php echo e($email); ?>">
-                                                <input type="hidden" name="password" value="123456">
+                                                <input type="hidden" name="auto_login" value="true">
 
                                                 <button type="submit" class="white get-login-access">Admin</button>
                                             </form>
@@ -198,7 +199,7 @@ App::setLocale(getUserLanguage());
                                                 <input type="hidden" name="school_id" value="1">
 
                                                 <input type="hidden" name="email" value="<?php echo e($email); ?>">
-                                                <input type="hidden" name="password" value="123456">
+                                                <input type="hidden" name="auto_login" value="true">
 
                                                 <button type="submit" class="white get-login-access">Teacher</button>
                                             </form>
@@ -215,7 +216,7 @@ App::setLocale(getUserLanguage());
                                                 <input type="hidden" name="school_id" value="1">
                                                 <input type="hidden" name="email" value="<?php echo e($email); ?>">
 
-                                                <input type="hidden" name="password" value="123456">
+                                                <input type="hidden" name="auto_login" value="true">
 
                                                 <button type="submit" class="white get-login-access">Accountant</button>
                                             </form>
@@ -230,7 +231,7 @@ App::setLocale(getUserLanguage());
                                                 $email = $user_7->email; ?>
                                                 <input type="hidden" name="school_id" value="1">
                                                 <input type="hidden" name="email" value="<?php echo e($email); ?>">
-                                                <input type="hidden" name="password" value="123456">
+                                                <input type="hidden" name="auto_login" value="true">
 
                                                 <button type="submit" class="white get-login-access">Receptionist</button>
                                             </form>
@@ -246,7 +247,7 @@ App::setLocale(getUserLanguage());
                                                 $email = $user_8->email; ?>
                                                 <input type="hidden" name="school_id" value="1">
                                                 <input type="hidden" name="email" value="<?php echo e($email); ?>">
-                                                <input type="hidden" name="password" value="123456">
+                                                <input type="hidden" name="auto_login" value="true">
 
                                                 <button type="submit" class="white get-login-access">Librarian</button>
                                             </form>
@@ -262,7 +263,7 @@ App::setLocale(getUserLanguage());
                                                 $email = $user_2->email; ?>
                                                 <input type="hidden" name="school_id" value="1">
                                                 <input type="hidden" name="email" value="<?php echo e($email); ?>">
-                                                <input type="hidden" name="password" value="123456">
+                                                <input type="hidden" name="auto_login" value="true">
 
                                                 <button type="submit" class="white get-login-access">Student</button>
                                             </form>
@@ -278,7 +279,7 @@ App::setLocale(getUserLanguage());
                                                 $email = $user_3->email; ?>
                                                 <input type="hidden" name="school_id" value="1">
                                                 <input type="hidden" name="email" value="<?php echo e($email); ?>">
-                                                <input type="hidden" name="password" value="123456">
+                                                <input type="hidden" name="auto_login" value="true">
 
                                                 <button type="submit" class="white get-login-access">Parents</button>
                                             </form>

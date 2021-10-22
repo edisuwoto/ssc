@@ -273,16 +273,6 @@
         </div>
     </section>
     @if(isset($marks))
-        @php
-            $generalSetting= App\SmGeneralSettings::where('school_id', Auth::user()->school_id)->first();
-            if(!empty($generalSetting)){
-                $school_name =$generalSetting->school_name;
-                $site_title =$generalSetting->site_title;
-                $school_code =$generalSetting->school_code;
-                $address =$generalSetting->address;
-                $phone =$generalSetting->phone;
-            }
-        @endphp
         @if (isset($single))
             <section class="student-details mt-20">
                 <div class="container-fluid p-0">
@@ -319,7 +309,7 @@
                                         <div class=" col-lg-8 text-left text-lg-right mt-30-md">
                                             <h3 class="text-white"> {{isset(generalSetting()->school_name)?generalSetting()->school_name:'Infix School Management ERP'}} </h3>
                                             <p class="text-white mb-0"> {{isset(generalSetting()->address)?generalSetting()->address:'Infix School Adress'}} </p>
-                                            <p class="text-white mb-0"> @lang('lang.email'): {{isset($email)?$email:'admin@demo.com'}} , @lang('lang.phone'): {{isset(generalSetting()->phone)?generalSetting()->phone:'admin@demo.com'}}</p>
+                                            <p class="text-white mb-0"> @lang('lang.email'): {{isset(generalSetting()->email)?generalSetting()->email:'admin@demo.com'}} , @lang('lang.phone'): {{isset(generalSetting()->phone)?generalSetting()->phone:'+8801841412141'}}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -456,13 +446,7 @@
                                                                 @php
                                                                     $value=subjectFullMark($exam_term_id, $subject_ID);
                                                                     $persentage=subjectPercentageMark($tola_mark_by_subject,$value);
-                                                                    $mark_grade = App\SmMarksGrade::where([
-                                                                                ['percent_from', '<=', $persentage], 
-                                                                                ['percent_upto', '>=', $persentage]
-                                                                                ])
-                                                                                ->where('school_id',Auth::user()->school_id)
-                                                                                ->where('academic_id',getAcademicId())
-                                                                                ->first();
+                                                                    $mark_grade = markGpa($persentage);
 
                                                                         $mark_grade_gpa=0;
                                                                         $optional_setup_gpa=0;
@@ -704,8 +688,8 @@
                                             <h3 class="text-white"> {{isset(generalSetting()->school_name)?generalSetting()->school_name:'Infix School Management ERP'}} </h3>
                                             <p class="text-white mb-0"> {{isset(generalSetting()->address)?generalSetting()->address:'Infix School Adress'}} </p>
                                             <p class="text-white mb-0">
-                                                @lang('lang.email'): {{isset($email)?$email:'admin@demo.com'}} ,
-                                                @lang('lang.phone'): {{isset(generalSetting()->phone)?generalSetting()->phone:'admin@demo.com'}}
+                                                @lang('lang.email'): {{isset(generalSetting()->email)?generalSetting()->email:'admin@demo.com'}} ,
+                                                @lang('lang.phone'): {{isset(generalSetting()->phone)?generalSetting()->phone:'+8801841412141'}}
                                             </p>
                                         </div>
                                     </div>
@@ -815,13 +799,8 @@
                                                                     @php
                                                                         $value=subjectFullMark($exam_term_id, $subject_ID);
                                                                         $persentage=subjectPercentageMark($tola_mark_by_subject,$value);
-                                                                        $mark_grade = App\SmMarksGrade::where([
-                                                                                    ['percent_from', '<=', $persentage], 
-                                                                                    ['percent_upto', '>=', $persentage]
-                                                                                    ])
-                                                                                    ->where('school_id',Auth::user()->school_id)
-                                                                                    ->where('academic_id',getAcademicId())
-                                                                                    ->first();
+                                                                        
+                                                                        $mark_grade = markGpa($persentage);
 
                                                                             $mark_grade_gpa=0;
                                                                             $optional_setup_gpa=0;
@@ -836,7 +815,7 @@
                                                                                     $tota_grade_point_main = $tota_grade_point_main + @$mark_grade->gpa;
                                                                                 }
                                                                             } else {
-                                                                                $tota_grade_point = $tota_grade_point + @$mark_grade->gpa ;
+                                                                                $tota_grade_point = $tota_grade_point + @$mark_grade->gpa;
                                                                                 if(@$mark_grade->gpa<1){
                                                                                     $this_student_failed =1;
                                                                                 }

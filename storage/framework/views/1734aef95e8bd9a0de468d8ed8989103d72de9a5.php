@@ -142,29 +142,25 @@
                                         </button>
                                     </div>
                                 </div>
-                                <?php
-                                if (isset($academic_year)) {
-                                    $copy_with_academic_year=explode(',',@$academic_year->copy_with_academic_year);
-                                }
-                                ?>
+                                <?php if(!isset($academic_year)): ?>
+
                                 <div class="row no-gutters input-right-icon mt-40">
                                     <label for="checkbox" class="mb-2"><?php echo app('translator')->get('lang.copy_with_academic_year'); ?></label>
                                     <select multiple id="e1" name="copy_with_academic_year[]" style="width:300px">
-                                        <option value="App\SmClass"  <?php if(isset($academic_year)): ?> <?php if(in_array("App\SmClass", @$copy_with_academic_year)): ?> selected <?php endif; ?> <?php endif; ?> ><?php echo app('translator')->get('lang.class'); ?> </option>
-                                        <option value="App\SmSection" <?php if(isset($academic_year)): ?> <?php if(in_array("App\SmSection", @$copy_with_academic_year)): ?> selected <?php endif; ?> <?php endif; ?> ><?php echo app('translator')->get('lang.section'); ?></option>
-                                        <option value="App\SmSubject" <?php if(isset($academic_year)): ?> <?php if(in_array("App\SmSubject", @$copy_with_academic_year)): ?> selected <?php endif; ?> <?php endif; ?> ><?php echo app('translator')->get('lang.subject'); ?></option>
-                                        <option value="App\SmExamType" <?php if(isset($academic_year)): ?> <?php if(in_array("App\SmExamType", @$copy_with_academic_year)): ?> selected <?php endif; ?> <?php endif; ?> ><?php echo app('translator')->get('lang.exam_type'); ?> </option>
-                                        <option value="App\SmMarksGrade" <?php if(isset($academic_year)): ?> <?php if(in_array("App\SmMarksGrade", @$copy_with_academic_year)): ?> selected <?php endif; ?> <?php endif; ?> ><?php echo app('translator')->get('lang.marks_grade'); ?> </option>
-                                        <option value="App\SmStudentCategory" <?php if(isset($academic_year)): ?> <?php if(in_array("App\SmStudentCategory", @$copy_with_academic_year)): ?> selected <?php endif; ?> <?php endif; ?> ><?php echo app('translator')->get('lang.student_category'); ?></option>
-                                        <option value="App\SmFeesGroup" <?php if(isset($academic_year)): ?> <?php if(in_array("App\SmFeesGroup", @$copy_with_academic_year)): ?> selected <?php endif; ?> <?php endif; ?> ><?php echo app('translator')->get('lang.fees_group'); ?></option>
-                                        
-                                        <option value="App\SmLeaveType" <?php if(isset($academic_year)): ?> <?php if(in_array("App\SmLeaveType", @$copy_with_academic_year)): ?> selected <?php endif; ?> <?php endif; ?> ><?php echo app('translator')->get('lang.leave_type'); ?></option>
+                                        <option value="App\SmClass" ><?php echo app('translator')->get('lang.class'); ?> </option>
+                                        <option value="App\SmSection"><?php echo app('translator')->get('lang.section'); ?></option>
+                                        <option value="App\SmSubject" ><?php echo app('translator')->get('lang.subject'); ?></option>
+                                        <option value="App\SmExamType" ><?php echo app('translator')->get('lang.exam_type'); ?> </option>
+                                        <option value="App\SmStudentCategory" ><?php echo app('translator')->get('lang.student_category'); ?></option>
+                                        <option value="App\SmFeesGroup" ><?php echo app('translator')->get('lang.fees_group'); ?></option>
+                                        <option value="App\SmLeaveType"><?php echo app('translator')->get('lang.leave_type'); ?></option>
                                     </select>
                                     <div class="">
                                     <input type="checkbox" id="checkbox" class="common-checkbox">
                                     <label for="checkbox" class="mt-3"><?php echo app('translator')->get('lang.select_all'); ?> </label>
                                     </div>
                                 </div>
+                                <?php endif; ?>
 
                                 <?php
                                     $tooltip = "";

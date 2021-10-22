@@ -2373,11 +2373,11 @@ button:focus {
 /* line 198, /Applications/MAMP/htdocs/InfixEduTheme/public/backEnd/scss/6_lawngreen_version/admin/_predefine.scss */
 
 .primary-btn.fix-gr-bg {
-    background: -webkit-linear-gradient( 90deg, #03e396 0%, #03e396 51%, #03e396 100%);
-    background: -moz-linear-gradient( 90deg, #03e396 0%, #03e396 51%, #03e396 100%);
-    background: -o-linear-gradient(90deg, #03e396 0%, #03e396 51%, #03e396 100%);
-    background: -ms-linear-gradient(90deg, #03e396 0%, #03e396 51%, #03e396 100%);
-    background: linear-gradient(90deg, #03e396 0%, #03e396 51%, #03e396 100%);
+    background: -webkit-linear-gradient( 90deg, #01620e 0%, #01620e 51%, #01620e 100%);
+    background: -moz-linear-gradient( 90deg, #01620e 0%, #01620e 51%, #01620e 100%);
+    background: -o-linear-gradient(90deg, #01620e 0%, #01620e 51%, #01620e 100%);
+    background: -ms-linear-gradient(90deg, #01620e 0%, #01620e 51%, #01620e 100%);
+    background: linear-gradient(90deg, #01620e 0%, #01620e 51%, #01620e 100%);
     color: #ffffff;
     background-size: 200% auto;
     -webkit-transition: all 0.4s ease 0s;

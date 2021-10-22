@@ -17,13 +17,13 @@
                             </li>
                         <?php endif; ?> -->
 
-
+                        <!--
                        <?php if(userPermission(428) && menuStatus(428) ): ?>
 
                                 <li  data-position="<?php echo e(menuPosition(428)); ?>">
                                     <a href="<?php echo e(route('base_setup')); ?>"><?php echo app('translator')->get('lang.base_setup'); ?></a>
                                 </li>
-                         <?php endif; ?>
+                         <?php endif; ?>-->
 
                          <?php if(userPermission(549) && menuStatus(549) ): ?>
 

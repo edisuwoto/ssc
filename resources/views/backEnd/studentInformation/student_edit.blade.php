@@ -32,7 +32,7 @@
             </div>
         </div>
         {{ Form::open(['class' => 'form-horizontal', 'files' => true, 'route' => 'student_update',
-                        'method' => 'POST', 'enctype' => 'multipart/form-data']) }}
+                        'method' => 'POST', 'enctype' => 'multipart/form-data', 'id' => 'student_form']) }}
         <div class="row">
             <div class="col-lg-12">
                 @if(session()->has('message-success'))

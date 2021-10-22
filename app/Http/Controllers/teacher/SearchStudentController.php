@@ -645,6 +645,7 @@ class SearchStudentController extends Controller
                         $notification->role_id = $role->id;
                         $notification->date = date('Y-m-d');
                         $notification->message = $purpose . ' updated';
+                        $notification->school_id = Auth::user()->school_id;
                         $notification->academic_id = getAcademicId();
                         $notification->save();
                     }
@@ -658,6 +659,7 @@ class SearchStudentController extends Controller
                         $notification->user_id = $student->user_id;
                         $notification->role_id = 2;
                         $notification->date = date('Y-m-d');
+                        $notification->school_id = Auth::user()->school_id;
                         $notification->academic_id = getAcademicId();
                         $notification->save();
                     }
@@ -669,6 +671,7 @@ class SearchStudentController extends Controller
                         $notification->role_id = 2;
                         $notification->date = date('Y-m-d');
                         $notification->message = $purpose . ' updated';
+                        $notification->school_id = Auth::user()->school_id;
                         $notification->academic_id = getAcademicId();
                         $notification->save();
                     }

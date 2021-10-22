@@ -1412,14 +1412,15 @@ class SmFeesController extends Controller
                 $result = $bank_payment->save();
 
                 if($result){
-                    $notidication = new SmNotification();
-                    $notidication->role_id = 2;
-                    $notidication->message ="Bank Payment Rejected -" .'('.@$bank_payment->feesType->name.')';
-                    $notidication->date = date('Y-m-d');
-                    $notidication->user_id = $student->user_id;
-                    $notidication->url = "student-fees";
-                    $notidication->academic_id = getAcademicId();
-                    $notidication->save();
+                    $notification = new SmNotification();
+                    $notification->role_id = 2;
+                    $notification->message ="Bank Payment Rejected -" .'('.@$bank_payment->feesType->name.')';
+                    $notification->date = date('Y-m-d');
+                    $notification->user_id = $student->user_id;
+                    $notification->url = "student-fees";
+                    $notification->school_id = Auth::user()->school_id;
+                    $notification->academic_id = getAcademicId();
+                    $notification->save();
 
                     try{
                         $reciver_email =  $student->full_name;
@@ -1428,7 +1429,7 @@ class SmFeesController extends Controller
                         $view ="backEnd.feesCollection.bank_payment_reject_student";
                         $compact['data'] =  array( 
                                 'note' => $bank_payment->reason, 
-                                'date' =>dateConvert($notidication->created_at),
+                                'date' =>dateConvert($notification->created_at),
                                 'student_name' =>$student->full_name,
                         ); 
                         send_mail($reciver_email, $receiver_name, $subject , $view , $compact);
@@ -1436,14 +1437,15 @@ class SmFeesController extends Controller
                        Log::info($e->getMessage());
                    }
 
-                    $notidication = new SmNotification();
-                    $notidication->role_id = 3;
-                    $notidication->message ="Bank Payment Rejected -" .'('.@$bank_payment->feesType->name.')';
-                    $notidication->date = date('Y-m-d');
-                    $notidication->user_id = $parent->user_id;
-                    $notidication->url = "parent-fees/".$student->id;
-                    $notidication->academic_id = getAcademicId();
-                    $notidication->save();
+                    $notification = new SmNotification();
+                    $notification->role_id = 3;
+                    $notification->message ="Bank Payment Rejected -" .'('.@$bank_payment->feesType->name.')';
+                    $notification->date = date('Y-m-d');
+                    $notification->user_id = $parent->user_id;
+                    $notification->url = "parent-fees/".$student->id;
+                    $notification->school_id = Auth::user()->school_id;
+                    $notification->academic_id = getAcademicId();
+                    $notification->save();
 
                     try{
                         $reciver_email =  $student->email;
@@ -1452,7 +1454,7 @@ class SmFeesController extends Controller
                         $view ="backEnd.feesCollection.bank_payment_reject_student";
                         $compact['data'] =  array( 
                                 'note' => $bank_payment->reason, 
-                                'date' =>dateConvert($notidication->created_at),
+                                'date' =>dateConvert($notification->created_at),
                                 'student_name' =>$student->full_name,
                         ); 
                         send_mail($reciver_email, $receiver_name, $subject , $view , $compact);
@@ -1612,6 +1614,7 @@ class SmFeesController extends Controller
                 $notification->date = date('Y-m-d');
                 $notification->user_id = $parent->user_id;
                 $notification->url = "";
+                $notification->school_id = Auth::user()->school_id;
                 $notification->academic_id = getAcademicId();
                 $notification->save();
 

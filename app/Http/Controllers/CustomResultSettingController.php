@@ -142,8 +142,12 @@ class CustomResultSettingController extends Controller
             $system_setting = SmGeneralSettings::where('school_id', Auth::user()->school_id)->first();
             $system_setting = $system_setting->session_id;
                 foreach($request->exam_type_percent as $key=>$exam_persent){
-                        $id = CustomResultSetting::where('exam_type_id',$key)->first('id')->id;
-                        $custom_setting = CustomResultSetting::find($id);
+                        $customResult = CustomResultSetting::where('exam_type_id',$key)->first();
+                        if($customResult){
+                            $custom_setting = CustomResultSetting::find($customResult->id);
+                        }else{
+                            $custom_setting = new CustomResultSetting;
+                        }
                         $custom_setting->exam_type_id = $key;
                         $custom_setting->exam_percentage = $exam_persent;
                         $custom_setting->academic_year = $system_setting;

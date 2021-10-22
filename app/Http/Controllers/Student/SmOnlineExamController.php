@@ -102,6 +102,7 @@ class SmOnlineExamController extends Controller
             $notification->date = date('Y-m-d');
             $notification->message = Auth::user()->student->full_name .' Submit answer for '.$online_exam_info->title;
             $notification->school_id = Auth::user()->school_id;
+            $notification->academic_id = getAcademicId();
             $notification->save();
 
             Toastr::success('Online Exam Taken Successfully', 'Success');

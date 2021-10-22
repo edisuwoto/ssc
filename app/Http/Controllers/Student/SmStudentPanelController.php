@@ -479,7 +479,7 @@ class SmStudentPanelController extends Controller
             date_default_timezone_set($time_zone_setup->time_zone);
 
 
-            $now = date('H:i:s');
+            $now = date('Y-m-d');
 
           if (moduleStatusCheck('OnlineExam')== TRUE) {
                 $online_exams = InfixOnlineExam::where('active_status', 1)->where('status', 1
@@ -945,6 +945,7 @@ class SmStudentPanelController extends Controller
             $notification->date = date('Y-m-d');
             $notification->message = Auth::user()->student->full_name .' '.app('translator')->get('lang.submitted_homework');
             $notification->school_id = Auth::user()->school_id;
+            $notification->academic_id = getAcademicId();
             $notification->save();
 
             try{
