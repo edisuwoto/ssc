@@ -1,0 +1,13 @@
+{
+    "name": "BebanKerjaDosen",
+    "alias": "bebankerjadosen",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\BebanKerjaDosen\\Providers\\BebanKerjaDosenServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}

@@ -20,5 +20,6 @@
     "Chat": true,
     "BulkPrint": true,
     "XenditPayment": true,
-    "HimalayaSms": true
+    "HimalayaSms": true,
+    "BebanKerjaDosen": true
 }

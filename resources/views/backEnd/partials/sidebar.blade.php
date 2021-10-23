@@ -84,6 +84,10 @@ $isSchoolAdmin = Session::get('isSchoolAdmin');
              @include('parentregistration::menu.ParentRegistration')
             @endif
 
+            @if(moduleStatusCheck('BebanKerjaDosen')== TRUE)
+            @include('bebankerjadosen::menu.BebanKerjaDosen')
+           @endif
+
             {{-- Saas Subscription Menu --}}
             @if(moduleStatusCheck('SaasSubscription')== TRUE && Auth::user()->is_administrator != "yes")
                 @include('saassubscription::menu.SaasSubscriptionSchool')
